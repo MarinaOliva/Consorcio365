@@ -27,8 +27,8 @@ export default {
       },
 
       boxShadow: {
-        card: "0 4px 10px rgba(0,0,0,0.08)",
-        glass: "0 20px 50px -12px rgba(0,0,0,0.45)",
+       card: "0 5px 8px rgba(10,53,64,0.85)",
+       //glass: "0 20px 50px -12px rgba(0,0,0,0.45)",
       },
 
       borderRadius: {

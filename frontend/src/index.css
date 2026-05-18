@@ -67,6 +67,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 #root {
@@ -127,25 +128,22 @@ code {
   background: var(--code-bg);
 }
 
-/* Scrollbar moderno */
+/* Scrollbar */
 *::-webkit-scrollbar {
-  width: 8px;
+  width: 12px;
 }
 
 /* Fondo de la barra */
 *::-webkit-scrollbar-track {
   background: gainsboro;
   border-radius: 995px;
-  margin-top: 12px;
-  margin-bottom: 12px;
-
 }
 
 /* Parte que se mueve */
 *::-webkit-scrollbar-thumb {
   background-color: rgba(88, 35, 103, 0.35); /* primary con opacidad */
   border-radius: 999px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(65, 15, 88, 0.4);
 }
 
 /* Hover */

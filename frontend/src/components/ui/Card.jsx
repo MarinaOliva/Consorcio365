@@ -6,7 +6,7 @@ function Card({
     <div
       className={`
         bg-surface
-        border border-border
+        border border-secondary/80
         rounded-xl
         shadow-card
         p-4
