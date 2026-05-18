@@ -7,25 +7,44 @@ function Button({
   className = "",
   disabled = false,
 }) {
-  
-  //  Variantes de color
+  //  Variantes
   const variants = {
     primary: `
       bg-primary
-      hover:bg-primaryHover
       text-white
-      focus:ring-primary/40
+      hover:bg-primaryHover
+      focus:ring-2 focus:ring-primary/40
+      focus:ring-offset-2 focus:ring-offset-white
     `,
+
     secondary: `
       bg-secondary
-      hover:bg-secondaryDark
       text-white
+      hover:bg-secondaryDark
       focus:ring-secondary/40
     `,
+
     ghost: `
       bg-transparent
       text-primary
       hover:bg-primarySoft
+    `,
+
+    // Nueva variante (la importante)
+    elevated: `
+      bg-primary
+      text-white
+
+      shadow-[0_4px_10px_rgba(88,35,103,0.28)]
+      hover:-translate-y-0.5
+      hover:shadow-[0_8px_18px_rgba(88,35,103,0.38)]
+      active:translate-y-0
+      active:shadow-[0_3px_8px_rgba(88,35,103,0.25)]
+      
+      transition-all
+      
+      focus:ring-2 focus:ring-primary/50
+      focus:ring-offset-2 focus:ring-offset-white
     `,
   };
 
@@ -33,6 +52,7 @@ function Button({
   const sizes = {
     sm: "px-4 py-1.5 text-sm",
     md: "px-6 py-2 text-sm",
+    lg: "px-7 py-2.5 text-base",
   };
 
   return (
@@ -44,7 +64,6 @@ function Button({
         inline-flex items-center justify-center
         rounded-lg
         font-semibold
-        transition
         focus:outline-none
         focus:ring-2 focus:ring-offset-2
         

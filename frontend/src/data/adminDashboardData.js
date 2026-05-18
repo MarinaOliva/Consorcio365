@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 export const adminMenuItems = [
-  { label: "Panel general", to: "/admin", icon: LayoutDashboard },
+  { label: "Panel general", to: "/admin", icon: LayoutDashboard, end: true },
   { label: "Usuarios", to: "/admin/usuarios", icon: Users },
   { label: "Unidades", to: "/admin/unidades", icon: DoorClosed },
   { label: "Incidencias", to: "/admin/incidencias", icon: CircleAlert },

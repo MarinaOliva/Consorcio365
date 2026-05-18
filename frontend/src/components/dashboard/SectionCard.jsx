@@ -28,18 +28,7 @@ function SectionCard({
           <Button
             size="sm"
             onClick={onAction}
-            className={`
-              shrink-0 
-              px-5 
-              py-2 
-              text-xs
-              shadow-[0_4px_10px_rgba(88,35,103,0.28)]
-              hover:-translate-y-0.5
-              hover:shadow-[0_8px_18px_rgba(88,35,103,0.38)]
-              active:translate-y-0
-              active:shadow-[0_3px_8px_rgba(88,35,103,0.25)]
-              ${actionButtonClassName}
-            `}
+            variant="elevated"
           >
             {actionLabel}
           </Button>

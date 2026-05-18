@@ -32,7 +32,7 @@ function DataTable({
 
       {/* Vista tablet/desktop: tabla */}
       <div className="hidden md:block">
-        <table className={`w-full ${minWidth} table-fixed border-collapse text-xs`}>
+        <table className={`w-full ${minWidth} table-auto border-collapse text-xs`}>
           <thead>
             <tr className="bg-secondary text-left text-[11px] text-white">
               {columns.map((column) => (

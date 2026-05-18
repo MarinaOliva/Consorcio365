@@ -6,6 +6,7 @@ function SidebarItem({ item, onClick }) {
   return (
     <NavLink
       to={item.to}
+      end={item.end}
       onClick={onClick}
       className={({ isActive }) => `
         flex items-center gap-3 rounded-md px-4 py-1.5
