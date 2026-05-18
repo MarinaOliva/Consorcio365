@@ -1,7 +1,9 @@
-require('dotenv').config();
+require('dotenv').config({ path: 'backend/.env' });
+
 const mongoose = require('mongoose');
 
 const connectDB  = require('../config/db');
+
 const Usuario    = require('../models/Usuario');
 const Edificio   = require('../models/Edificio');
 const Unidad     = require('../models/Unidad');
@@ -11,6 +13,7 @@ const PlanMantenimiento      = require('../models/PlanMantenimiento');
 const InstanciaMantenimiento = require('../models/InstanciaMantenimiento');
 const Aviso      = require('../models/Aviso');
 const Documento  = require('../models/Documento');
+const Gasto      = require('../models/Gasto');
 
 const seed = async () => {
   await connectDB();
@@ -22,11 +25,13 @@ const seed = async () => {
     Unidad.deleteMany({}),
     Incidencia.deleteMany({}),
     Trabajo.deleteMany({}),
+    Gasto.deleteMany({}), // ✅ NUEVO
     PlanMantenimiento.deleteMany({}),
     InstanciaMantenimiento.deleteMany({}),
     Aviso.deleteMany({}),
     Documento.deleteMany({})
   ]);
+
   console.log('Colecciones limpiadas\n');
 
   // ── 1. EDIFICIO ───────────────────────────────────────────
@@ -39,7 +44,6 @@ const seed = async () => {
 
   // ── 2. USUARIOS ───────────────────────────────────────────
   // El hook pre('save') del modelo se encarga de hashear el password
-
   // Administrador
   const admin = await Usuario.create({
     nombre: 'Marina', apellido: 'Oliva',
@@ -142,7 +146,7 @@ const seed = async () => {
     proveedoresData.map(data => Usuario.create(data))
   );
 
-  console.log(' Usuarios creados: 1 admin, 6 ocupantes, 4 proveedores');
+  console.log('Usuarios creados: 1 admin, 6 ocupantes, 4 proveedores');
 
   // ── 3. UNIDADES ───────────────────────────────────────────
   const unidades = await Unidad.insertMany([
@@ -218,10 +222,10 @@ const seed = async () => {
       }]
     }
   ]);
+
   console.log(`${unidades.length} unidades creadas`);
 
   // ── 4. INCIDENCIAS ────────────────────────────────────────
-
   // Incidencia 1: CERRADA (con trabajo cerrado y gasto generado)
   const inc1 = await Incidencia.create({
     edificioId: edificio._id,
@@ -236,14 +240,14 @@ const seed = async () => {
       { usuarioId: oc1._id,   texto: 'Gracias, mientras tanto puse un balde para contener el agua.',  fecha: new Date('2024-11-02') }
     ],
     historialEstados: [
-      { estadoAnterior: 'ABIERTA',     estadoNuevo: 'EN_PROGRESO', creadoPorId: admin._id, fecha: new Date('2024-11-02') },
-      { estadoAnterior: 'EN_PROGRESO', estadoNuevo: 'RESUELTA',    creadoPorId: admin._id, fecha: new Date('2024-11-05') },
-      { estadoAnterior: 'RESUELTA',    estadoNuevo: 'CERRADA',     creadoPorId: admin._id, fecha: new Date('2024-11-06') }
+      { estadoAnterior: 'ABIERTA',      estadoNuevo: 'EN_PROGRESO', creadoPorId: admin._id, fecha: new Date('2024-11-02') },
+      { estadoAnterior: 'EN_PROGRESO',  estadoNuevo: 'RESUELTA',    creadoPorId: admin._id, fecha: new Date('2024-11-05') },
+      { estadoAnterior: 'RESUELTA',     estadoNuevo: 'CERRADA',     creadoPorId: admin._id, fecha: new Date('2024-11-06') }
     ],
     createdAt: new Date('2024-11-01')
   });
 
-  await Trabajo.create({
+  const tInc1 = await Trabajo.create({
     incidenciaId: inc1._id,
     proveedorId: prov1._id,
     descripcion: 'Cambio de sello y reparación de cañería bajo lavabo',
@@ -254,8 +258,18 @@ const seed = async () => {
       { estadoAnterior: 'EN_EJECUCION', estadoNuevo: 'FINALIZADO',   creadoPorId: prov1._id, fecha: new Date('2024-11-05') },
       { estadoAnterior: 'FINALIZADO',   estadoNuevo: 'CERRADO',      creadoPorId: admin._id, fecha: new Date('2024-11-06') }
     ],
-    gasto: { monto: 18000, concepto: 'Reparación pérdida cañería — Unidad 1A', tipo: 'CORRECTIVO', fecha: new Date('2024-11-06') },
     createdAt: new Date('2024-11-02')
+  });
+
+  await Gasto.create({
+    edificioId: edificio._id,
+    trabajoId: tInc1._id,
+    tipo: 'CORRECTIVO',
+    monto: 18000,
+    concepto: 'Reparación pérdida cañería — Unidad 1A',
+    comprobante: null,
+    fecha: new Date('2024-11-06'),
+    createdAt: new Date('2024-11-06')
   });
 
   // Incidencia 2: CERRADA (electricidad)
@@ -268,26 +282,36 @@ const seed = async () => {
     categoria: 'electricidad', prioridad: 'media', estado: 'CERRADA',
     fotos: [], comentarios: [],
     historialEstados: [
-      { estadoAnterior: 'ABIERTA',     estadoNuevo: 'EN_PROGRESO', creadoPorId: admin._id, fecha: new Date('2024-10-10') },
-      { estadoAnterior: 'EN_PROGRESO', estadoNuevo: 'RESUELTA',    creadoPorId: admin._id, fecha: new Date('2024-10-12') },
-      { estadoAnterior: 'RESUELTA',    estadoNuevo: 'CERRADA',     creadoPorId: admin._id, fecha: new Date('2024-10-13') }
+      { estadoAnterior: 'ABIERTA',      estadoNuevo: 'EN_PROGRESO', creadoPorId: admin._id, fecha: new Date('2024-10-10') },
+      { estadoAnterior: 'EN_PROGRESO',  estadoNuevo: 'RESUELTA',    creadoPorId: admin._id, fecha: new Date('2024-10-12') },
+      { estadoAnterior: 'RESUELTA',     estadoNuevo: 'CERRADA',     creadoPorId: admin._id, fecha: new Date('2024-10-13') }
     ],
     createdAt: new Date('2024-10-09')
   });
 
-  await Trabajo.create({
+  const tInc2 = await Trabajo.create({
     incidenciaId: inc2._id,
     proveedorId: prov2._id,
     descripcion: 'Reemplazo de llave térmica y cambio de luminaria pasillo piso 2',
     monto: 12500, estado: 'CERRADO', evidencias: [],
     historialEstados: [
-      { estadoAnterior: 'CREADO',       estadoNuevo: 'ASIGNADO',     creadoPorId: admin._id, fecha: new Date('2024-10-10') },
-      { estadoAnterior: 'ASIGNADO',     estadoNuevo: 'EN_EJECUCION', creadoPorId: prov2._id, fecha: new Date('2024-10-11') },
-      { estadoAnterior: 'EN_EJECUCION', estadoNuevo: 'FINALIZADO',   creadoPorId: prov2._id, fecha: new Date('2024-10-12') },
-      { estadoAnterior: 'FINALIZADO',   estadoNuevo: 'CERRADO',      creadoPorId: admin._id, fecha: new Date('2024-10-13') }
+      { estadoAnterior: 'CREADO',       estadoNuevo: 'ASIGNADO',     creadoPorId: admin._id,  fecha: new Date('2024-10-10') },
+      { estadoAnterior: 'ASIGNADO',     estadoNuevo: 'EN_EJECUCION', creadoPorId: prov2._id,  fecha: new Date('2024-10-11') },
+      { estadoAnterior: 'EN_EJECUCION', estadoNuevo: 'FINALIZADO',   creadoPorId: prov2._id,  fecha: new Date('2024-10-12') },
+      { estadoAnterior: 'FINALIZADO',   estadoNuevo: 'CERRADO',      creadoPorId: admin._id,  fecha: new Date('2024-10-13') }
     ],
-    gasto: { monto: 12500, concepto: 'Reparación eléctrica pasillo piso 2', tipo: 'CORRECTIVO', fecha: new Date('2024-10-13') },
     createdAt: new Date('2024-10-10')
+  });
+
+  await Gasto.create({
+    edificioId: edificio._id,
+    trabajoId: tInc2._id,
+    tipo: 'CORRECTIVO',
+    monto: 12500,
+    concepto: 'Reparación eléctrica pasillo piso 2',
+    comprobante: null,
+    fecha: new Date('2024-10-13'),
+    createdAt: new Date('2024-10-13')
   });
 
   // Incidencia 3: EN_PROGRESO (trabajo asignado, sin finalizar)
@@ -317,7 +341,6 @@ const seed = async () => {
       { estadoAnterior: 'CREADO',   estadoNuevo: 'ASIGNADO',     creadoPorId: admin._id, fecha: new Date('2025-01-16') },
       { estadoAnterior: 'ASIGNADO', estadoNuevo: 'EN_EJECUCION', creadoPorId: prov3._id, fecha: new Date('2025-01-20') }
     ],
-    gasto: null,
     createdAt: new Date('2025-01-16')
   });
 
@@ -385,18 +408,16 @@ const seed = async () => {
     descripcion: 'Cambio de lámpara y revisión del circuito en cochera',
     monto: 8500, estado: 'FINALIZADO', evidencias: [],
     historialEstados: [
-      { estadoAnterior: 'CREADO',       estadoNuevo: 'ASIGNADO',     creadoPorId: admin._id, fecha: new Date('2025-03-10') },
-      { estadoAnterior: 'ASIGNADO',     estadoNuevo: 'EN_EJECUCION', creadoPorId: prov2._id, fecha: new Date('2025-03-11') },
-      { estadoAnterior: 'EN_EJECUCION', estadoNuevo: 'FINALIZADO',   creadoPorId: prov2._id, fecha: new Date('2025-03-12') }
+      { estadoAnterior: 'CREADO',       estadoNuevo: 'ASIGNADO',     creadoPorId: admin._id,  fecha: new Date('2025-03-10') },
+      { estadoAnterior: 'ASIGNADO',     estadoNuevo: 'EN_EJECUCION', creadoPorId: prov2._id,  fecha: new Date('2025-03-11') },
+      { estadoAnterior: 'EN_EJECUCION', estadoNuevo: 'FINALIZADO',   creadoPorId: prov2._id,  fecha: new Date('2025-03-12') }
     ],
-    gasto: null,
     createdAt: new Date('2025-03-10')
   });
 
-  console.log(' 7 incidencias creadas (cerradas, en progreso, abiertas, rechazada, resuelta)');
+  console.log('7 incidencias creadas (cerradas, en progreso, abiertas, rechazada, resuelta)');
 
   // ── 5. PLANES E INSTANCIAS DE MANTENIMIENTO ───────────────
-
   // Plan 1: Ascensores — trimestral
   const plan1 = await PlanMantenimiento.create({
     edificioId: edificio._id,
@@ -413,19 +434,29 @@ const seed = async () => {
     createdAt: new Date('2025-01-01')
   });
 
-  await Trabajo.create({
+  const tPrev1 = await Trabajo.create({
     instanciaMantenimientoId: inst1._id,
     proveedorId: prov4._id,
     descripcion: 'Revisión semestral de ascensor: lubricación, ajuste de cables y prueba de seguridad',
     monto: 35000, estado: 'CERRADO', evidencias: [],
     historialEstados: [
-      { estadoAnterior: 'CREADO',       estadoNuevo: 'ASIGNADO',     creadoPorId: admin._id, fecha: new Date('2025-01-10') },
-      { estadoAnterior: 'ASIGNADO',     estadoNuevo: 'EN_EJECUCION', creadoPorId: prov4._id, fecha: new Date('2025-01-15') },
-      { estadoAnterior: 'EN_EJECUCION', estadoNuevo: 'FINALIZADO',   creadoPorId: prov4._id, fecha: new Date('2025-01-16') },
-      { estadoAnterior: 'FINALIZADO',   estadoNuevo: 'CERRADO',      creadoPorId: admin._id, fecha: new Date('2025-01-17') }
+      { estadoAnterior: 'CREADO',       estadoNuevo: 'ASIGNADO',     creadoPorId: admin._id,  fecha: new Date('2025-01-10') },
+      { estadoAnterior: 'ASIGNADO',     estadoNuevo: 'EN_EJECUCION', creadoPorId: prov4._id,  fecha: new Date('2025-01-15') },
+      { estadoAnterior: 'EN_EJECUCION', estadoNuevo: 'FINALIZADO',   creadoPorId: prov4._id,  fecha: new Date('2025-01-16') },
+      { estadoAnterior: 'FINALIZADO',   estadoNuevo: 'CERRADO',      creadoPorId: admin._id,  fecha: new Date('2025-01-17') }
     ],
-    gasto: { monto: 35000, concepto: 'Mantenimiento preventivo ascensor — Enero 2025', tipo: 'PREVENTIVO', fecha: new Date('2025-01-17') },
     createdAt: new Date('2025-01-10')
+  });
+
+  await Gasto.create({
+    edificioId: edificio._id,
+    trabajoId: tPrev1._id,
+    tipo: 'PREVENTIVO',
+    monto: 35000,
+    concepto: 'Mantenimiento preventivo ascensor — Enero 2025',
+    comprobante: null,
+    fecha: new Date('2025-01-17'),
+    createdAt: new Date('2025-01-17')
   });
 
   const inst2 = await InstanciaMantenimiento.create({
@@ -443,7 +474,6 @@ const seed = async () => {
     historialEstados: [
       { estadoAnterior: 'CREADO', estadoNuevo: 'ASIGNADO', creadoPorId: admin._id, fecha: new Date('2025-04-02') }
     ],
-    gasto: null,
     createdAt: new Date('2025-04-02')
   });
 
@@ -463,19 +493,29 @@ const seed = async () => {
     createdAt: new Date('2024-11-15')
   });
 
-  await Trabajo.create({
+  const tPrev2 = await Trabajo.create({
     instanciaMantenimientoId: inst3._id,
     proveedorId: prov1._id,
     descripcion: 'Vaciado, limpieza, desinfección y llenado de tanques',
     monto: 22000, estado: 'CERRADO', evidencias: [],
     historialEstados: [
-      { estadoAnterior: 'CREADO',       estadoNuevo: 'ASIGNADO',     creadoPorId: admin._id, fecha: new Date('2024-11-20') },
-      { estadoAnterior: 'ASIGNADO',     estadoNuevo: 'EN_EJECUCION', creadoPorId: prov1._id, fecha: new Date('2024-12-01') },
-      { estadoAnterior: 'EN_EJECUCION', estadoNuevo: 'FINALIZADO',   creadoPorId: prov1._id, fecha: new Date('2024-12-01') },
-      { estadoAnterior: 'FINALIZADO',   estadoNuevo: 'CERRADO',      creadoPorId: admin._id, fecha: new Date('2024-12-02') }
+      { estadoAnterior: 'CREADO',       estadoNuevo: 'ASIGNADO',     creadoPorId: admin._id,  fecha: new Date('2024-11-20') },
+      { estadoAnterior: 'ASIGNADO',     estadoNuevo: 'EN_EJECUCION', creadoPorId: prov1._id,  fecha: new Date('2024-12-01') },
+      { estadoAnterior: 'EN_EJECUCION', estadoNuevo: 'FINALIZADO',   creadoPorId: prov1._id,  fecha: new Date('2024-12-01') },
+      { estadoAnterior: 'FINALIZADO',   estadoNuevo: 'CERRADO',      creadoPorId: admin._id,  fecha: new Date('2024-12-02') }
     ],
-    gasto: { monto: 22000, concepto: 'Limpieza de tanques — Diciembre 2024', tipo: 'PREVENTIVO', fecha: new Date('2024-12-02') },
     createdAt: new Date('2024-11-20')
+  });
+
+  await Gasto.create({
+    edificioId: edificio._id,
+    trabajoId: tPrev2._id,
+    tipo: 'PREVENTIVO',
+    monto: 22000,
+    concepto: 'Limpieza de tanques — Diciembre 2024',
+    comprobante: null,
+    fecha: new Date('2024-12-02'),
+    createdAt: new Date('2024-12-02')
   });
 
   // Plan 3: Revisión eléctrica — anual (inactivo)
@@ -524,6 +564,7 @@ const seed = async () => {
       fechaPublicacion: new Date('2025-04-10')
     }
   ]);
+
   console.log('4 avisos creados');
 
   // ── 7. DOCUMENTOS ─────────────────────────────────────────
@@ -565,6 +606,7 @@ const seed = async () => {
       visibilidad: 'todos', categoria: 'informe'
     }
   ]);
+
   console.log('6 documentos creados');
 
   // ── Resumen ───────────────────────────────────────────────
