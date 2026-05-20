@@ -70,12 +70,50 @@ function EditEntityModal({
     </div>
   );
 }
+
 function UserForm({ entity }) {
   return (
-    <div className="space-y-4">
-      <input defaultValue={entity.name} className="input" />
-      <input defaultValue={entity.email} className="input" />
-      <input defaultValue="DNI" className="input" />
+    <div className="space-y-5">
+      
+      <EditableInput
+        label="Nombre"
+        value={entity?.name || ""}
+      />
+
+      <EditableInput
+        label="Email"
+        value={entity?.email || ""}
+      />
+
+      <EditableInput
+        label="N° Teléfono / Celular"
+        value="+54 11 4567-8900"
+      />
+
+      <SelectField
+        label="Tipo de Documento"
+        value="DNI"
+        options={["DNI", "Pasaporte", "CUIT"]}
+      />
+
+      <EditableInput
+        label="N° Documento"
+        value="35.456.789"
+      />
+
+      <SelectField
+        label="Rol en la Unidad"
+        value="PROPIETARIO"
+        options={["PROPIETARIO", "INQUILINO"]}
+      />
+
+      <RadioGroup
+        label="Estado"
+        name="status"
+        value={entity.status}
+        options={["Activo", "Inactivo"]}
+      />
+
     </div>
   );
 }

@@ -6,7 +6,7 @@ function SectionCard({
   children,
   actionLabel,
   onAction,
-  actionButtonClassName = "",
+  //actionButtonClassName = "",
   className = "",
 }) {
   return (
@@ -29,9 +29,9 @@ function SectionCard({
             size="sm"
             onClick={onAction}
             variant="elevated"
+            className="{actionButtonClassName}"
           >
             {actionLabel}
-            ${actionButtonClassName}
           </Button>
         )}
       </div>

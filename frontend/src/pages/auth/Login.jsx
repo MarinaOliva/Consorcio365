@@ -28,8 +28,8 @@ function Login() {
     const role = email.includes("admin")
       ? ROLES.ADMIN
       : email.includes("proveedor")
-      ? ROLES.PROVEEDOR
-      : ROLES.OCUPANTE;
+        ? ROLES.PROVEEDOR
+        : ROLES.OCUPANTE;
 
     login(role);
 
@@ -45,8 +45,7 @@ function Login() {
   return (
     <>
       <AuthLayout>
-        <form onSubmit={handleSubmit} className="space-y-3 text-left">
-
+        <form onSubmit={handleSubmit} className="space-y-1 text-left">
           {/* EMAIL */}
           <div>
             <label className="block text-xs font-medium text-textMain/80 mb-1">
@@ -89,7 +88,31 @@ function Login() {
           {/* OPCIONES */}
           <div className="flex items-center justify-between text-xs text-textMain/70">
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="rounded border-border" />
+              <input
+                type="checkbox"
+                className="      
+                  w-4 h-4
+                  rounded
+                  border border-primary
+                  bg-transparent
+                  shadow-[0_1px_2px_rgba(0,0,0,0.35)]
+                  appearance-none
+
+                  flex items-center justify-center
+
+                  checked:bg-transparent
+                 checked:border-primary
+                  checked:border-2
+
+                  checked:after:content-['✔']
+                 checked:after:text-primary
+                  checked:after:text-[12px]
+                  checked:after:leading-none
+
+                  cursor-pointer
+
+                "
+              />
               Recordarme
             </label>
 
@@ -112,6 +135,7 @@ function Login() {
               bg-primary 
               hover:bg-primaryHover 
               text-white
+              shadow-[0_2px_3px_rgba(0,0,0,0.35)]
             "
           >
             INGRESAR
