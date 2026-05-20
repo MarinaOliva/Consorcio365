@@ -35,7 +35,7 @@ const seed = async () => {
 
   // ── 1. EDIFICIO ───────────────────────────────────────────
   const edificio = await Edificio.create({
-    nombre:    'Edificio Nexora',
+    nombre:    'Torre Norte',
     direccion: 'Av. Pellegrini 1234, Rosario',
     amenities: ['SUM', 'parrilla', 'gimnasio', 'pileta', 'lavandería']
   });
