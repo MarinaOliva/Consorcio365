@@ -9,12 +9,20 @@ import AdminUsersTable from "../../components/admin/AdminUsersTable";
 import { adminUsers } from "../../data/adminUsersData";
 import { adminMenuItems, adminUser } from "../../data/adminDashboardData";
 
-import EditUserModal from "../../components/admin/EditUserModal";
+import EditEntityModal from "../../components/admin/EditEntityModal";
+import SuccessModal from "../../components/shared/SuccessModal";
+
 
 function UsuariosAdmin() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("Todos");
   const [statusFilter, setStatusFilter] = useState("Todos");
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+  
+  const handleSave = () => {
+  setIsModalOpen(false);
+  setIsSuccessOpen(true);
+  };
 
   // filtrado
   const filteredUsers = adminUsers.filter((user) => {
@@ -60,10 +68,16 @@ function UsuariosAdmin() {
 
       </section>
 
-      <EditUserModal
+      <EditEntityModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        user={selectedUser}
+        onSave={handleSave}
+        entity={selectedUser}
+      />
+
+      <SuccessModal
+        isOpen={isSuccessOpen}
+        onClose={() => setIsSuccessOpen(false)}
       />
     </DashboardLayout>
   );

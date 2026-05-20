@@ -31,6 +31,7 @@ function SectionCard({
             variant="elevated"
           >
             {actionLabel}
+            ${actionButtonClassName}
           </Button>
         )}
       </div>
