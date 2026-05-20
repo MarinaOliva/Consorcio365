@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const Usuario = require('../../models/Usuario');
 const { generateToken } = require('../../utils/jwt');
 const sendMail = require('../../utils/mailer');
+const { ESTADOS_USUARIO } = require('../../constants/estados');
 
 // Reglas de password:
 const validarPassword = (password) => {
@@ -35,9 +36,9 @@ const login = async ({ email, password }) => {
     throw err;
   }
 
-  // Estado de usuario
-  if (usuario.estado && usuario.estado !== 'ACTIVO') {
-    const err = new Error('Usuario no activo');
+  // Solo los inactivos no pueden loguearse, los pendientes sí (para que puedan cambiar su password temporal)
+  if (usuario.estado === 'INACTIVO') {
+    const err = new Error('Usuario desactivado, contacte al administrador');
     err.status = 403;
     throw err;
   }
@@ -107,7 +108,7 @@ const recuperar = async ({ email }) => {
     <div style="font-family: Arial, sans-serif;">
       <h2>Recuperación de contraseña</h2>
       <p>Hola ${usuario.nombre},</p>
-      <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+      <p>Recibimos una solicitud para restablecer su contraseña.</p>
       <p>Haga click en este enlace para crear una nueva contraseña (válido por 1 hora):</p>
       <p><a href="${linkReset}">${linkReset}</a></p>
       <p>Si no fue usted, puede ignorar este correo.</p>
@@ -136,7 +137,7 @@ const resetPassword = async ({ token, nuevaPassword }) => {
     const err = new Error('La nueva contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial');
     err.status = 400;
     throw err;
-  }
+  } 
 
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
@@ -154,6 +155,12 @@ const resetPassword = async ({ token, nuevaPassword }) => {
   // Setear nueva contraseña (hasheado en el hook de pre-save del modelo), y limpiar token + expiración
   usuario.passwordHash = nuevaPassword;
   usuario.debeCambiarPassword = false;
+  
+  // Si estaba pendiente, se activa automaticamente al recuperar la contraseña
+    if (usuario.estado === 'PENDIENTE') {   
+    usuario.estado = ESTADOS_USUARIO.ACTIVO;
+    }
+
   usuario.tokenRecuperacion = null;
   usuario.expiracionToken = null;
 

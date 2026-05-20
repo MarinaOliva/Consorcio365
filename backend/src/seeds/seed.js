@@ -1,5 +1,4 @@
-require('dotenv').config({ path: 'backend/.env' });
-
+require('dotenv').config();
 const mongoose = require('mongoose');
 
 const connectDB  = require('../config/db');
@@ -25,7 +24,7 @@ const seed = async () => {
     Unidad.deleteMany({}),
     Incidencia.deleteMany({}),
     Trabajo.deleteMany({}),
-    Gasto.deleteMany({}), // ✅ NUEVO
+    Gasto.deleteMany({}),
     PlanMantenimiento.deleteMany({}),
     InstanciaMantenimiento.deleteMany({}),
     Aviso.deleteMany({}),
@@ -43,8 +42,7 @@ const seed = async () => {
   console.log(`Edificio: ${edificio.nombre}`);
 
   // ── 2. USUARIOS ───────────────────────────────────────────
-  // El hook pre('save') del modelo se encarga de hashear el password
-  // Administrador
+  // Admin
   const admin = await Usuario.create({
     nombre: 'Marina', apellido: 'Oliva',
     email: 'admin@consorcio365.com',
@@ -54,43 +52,49 @@ const seed = async () => {
     telefono: '341-555-0001'
   });
 
-  // Ocupantes — insertMany no dispara hooks, usamos create en loop
+  // Ocupantes 
   const ocupantesData = [
     {
       nombre: 'Juan', apellido: 'Pérez',
       email: 'juan@mail.com', passwordHash: 'Cambiar123!',
       tipo: 'ocupante', estado: 'ACTIVO',
-      debeCambiarPassword: false, telefono: '341-555-0010'
+      debeCambiarPassword: false, telefono: '341-555-0010',
+      tipoDoc: 'DNI', numDoc: '30111222'
     },
     {
       nombre: 'Laura', apellido: 'Gómez',
       email: 'laura@mail.com', passwordHash: 'Cambiar123!',
       tipo: 'ocupante', estado: 'ACTIVO',
-      debeCambiarPassword: false, telefono: '341-555-0011'
+      debeCambiarPassword: false, telefono: '341-555-0011',
+      tipoDoc: 'DNI', numDoc: '31222333'
     },
     {
       nombre: 'Roberto', apellido: 'Sánchez',
       email: 'roberto@mail.com', passwordHash: 'Cambiar123!',
       tipo: 'ocupante', estado: 'ACTIVO',
-      debeCambiarPassword: false, telefono: '341-555-0012'
+      debeCambiarPassword: false, telefono: '341-555-0012',
+      tipoDoc: 'DNI', numDoc: '32333444'
     },
     {
       nombre: 'Valeria', apellido: 'Torres',
       email: 'valeria@mail.com', passwordHash: 'Cambiar123!',
       tipo: 'ocupante', estado: 'ACTIVO',
-      debeCambiarPassword: false, telefono: '341-555-0013'
+      debeCambiarPassword: false, telefono: '341-555-0013',
+      tipoDoc: 'DNI', numDoc: '33444555'
     },
     {
       nombre: 'Diego', apellido: 'Fernández',
       email: 'diego@mail.com', passwordHash: 'Cambiar123!',
       tipo: 'ocupante', estado: 'ACTIVO',
-      debeCambiarPassword: false, telefono: '341-555-0014'
+      debeCambiarPassword: false, telefono: '341-555-0014',
+      tipoDoc: 'DNI', numDoc: '34555666'
     },
     {
       nombre: 'Sofía', apellido: 'Ramírez',
       email: 'sofia@mail.com', passwordHash: 'Cambiar123!',
       tipo: 'ocupante', estado: 'PENDIENTE',
-      debeCambiarPassword: true, telefono: '341-555-0015'
+      debeCambiarPassword: true, telefono: '341-555-0015',
+      tipoDoc: 'DNI', numDoc: '35666777'
     }
   ];
 
@@ -98,16 +102,22 @@ const seed = async () => {
     ocupantesData.map(data => Usuario.create(data))
   );
 
-  // Proveedores
+  // Proveedores 
   const proveedoresData = [
     {
       nombre: 'Carlos', apellido: 'López',
       email: 'carlos.plomero@mail.com', passwordHash: 'Cambiar123!',
       tipo: 'proveedor', estado: 'ACTIVO',
       debeCambiarPassword: false, telefono: '341-555-0020',
+      tipoDoc: 'CUIT', numDoc: '20-12345678-9',
       proveedorDetalle: {
-        especialidad: 'plomeria', condicionFiscal: 'Monotributo',
-        cuit_cuil: '20-12345678-9', razonSocial: 'López Plomería'
+        especialidad: 'plomeria',
+        direccion: 'Av. Pellegrini 800, Rosario',
+        matricula: 'MP-10001',
+        tipoProveedor: 'Plomero',
+        condicionFiscal: 'Monotributo',
+        cuit_cuil: '20-12345678-9',
+        razonSocial: 'López Plomería'
       }
     },
     {
@@ -115,9 +125,15 @@ const seed = async () => {
       email: 'marcelo.electrico@mail.com', passwordHash: 'Cambiar123!',
       tipo: 'proveedor', estado: 'ACTIVO',
       debeCambiarPassword: false, telefono: '341-555-0021',
+      tipoDoc: 'CUIT', numDoc: '20-87654321-0',
       proveedorDetalle: {
-        especialidad: 'electricidad', condicionFiscal: 'Responsable Inscripto',
-        cuit_cuil: '20-87654321-0', razonSocial: 'Ríos Electricidad SRL'
+        especialidad: 'electricidad',
+        direccion: 'Bv. Oroño 1500, Rosario',
+        matricula: 'ME-20002',
+        tipoProveedor: 'Electricista',
+        condicionFiscal: 'Responsable Inscripto',
+        cuit_cuil: '20-87654321-0',
+        razonSocial: 'Ríos Electricidad SRL'
       }
     },
     {
@@ -125,9 +141,15 @@ const seed = async () => {
       email: 'hugo.albanil@mail.com', passwordHash: 'Cambiar123!',
       tipo: 'proveedor', estado: 'ACTIVO',
       debeCambiarPassword: false, telefono: '341-555-0022',
+      tipoDoc: 'CUIT', numDoc: '20-11223344-5',
       proveedorDetalle: {
-        especialidad: 'albanileria', condicionFiscal: 'Monotributo',
-        cuit_cuil: '20-11223344-5', razonSocial: 'Martínez Construcciones'
+        especialidad: 'albanileria',
+        direccion: 'Ovidio Lagos 2200, Rosario',
+        matricula: 'MA-30003',
+        tipoProveedor: 'Albañil',
+        condicionFiscal: 'Monotributo',
+        cuit_cuil: '20-11223344-5',
+        razonSocial: 'Martínez Construcciones'
       }
     },
     {
@@ -135,9 +157,15 @@ const seed = async () => {
       email: 'pablo.ascensores@mail.com', passwordHash: 'Cambiar123!',
       tipo: 'proveedor', estado: 'ACTIVO',
       debeCambiarPassword: false, telefono: '341-555-0023',
+      tipoDoc: 'CUIT', numDoc: '30-55667788-1',
       proveedorDetalle: {
-        especialidad: 'ascensores', condicionFiscal: 'Responsable Inscripto',
-        cuit_cuil: '30-55667788-1', razonSocial: 'Vega Ascensores SA'
+        especialidad: 'ascensores',
+        direccion: 'Av. Francia 3500, Rosario',
+        matricula: 'MA-40004',
+        tipoProveedor: 'Empresa de Ascensores',
+        condicionFiscal: 'Responsable Inscripto',
+        cuit_cuil: '30-55667788-1',
+        razonSocial: 'Vega Ascensores SA'
       }
     }
   ];
@@ -150,7 +178,6 @@ const seed = async () => {
 
   // ── 3. UNIDADES ───────────────────────────────────────────
   const unidades = await Unidad.insertMany([
-    // Piso 1
     {
       edificioId: edificio._id, numero: '1A', piso: '1',
       estado: 'OCUPADA',
@@ -176,7 +203,6 @@ const seed = async () => {
         }
       ]
     },
-    // Piso 2
     {
       edificioId: edificio._id, numero: '2A', piso: '2',
       estado: 'OCUPADA',
@@ -193,7 +219,6 @@ const seed = async () => {
         esOcupanteActual: true, estado: 'VIGENTE', desde: new Date('2021-05-15')
       }]
     },
-    // Piso 3
     {
       edificioId: edificio._id, numero: '3A', piso: '3',
       estado: 'OCUPADA',
@@ -207,7 +232,6 @@ const seed = async () => {
       estado: 'EN_REFACCION',
       unidadRelaciones: []
     },
-    // Piso 4
     {
       edificioId: edificio._id, numero: '4A', piso: '4',
       estado: 'VACIA',
@@ -226,7 +250,6 @@ const seed = async () => {
   console.log(`${unidades.length} unidades creadas`);
 
   // ── 4. INCIDENCIAS ────────────────────────────────────────
-  // Incidencia 1: CERRADA (con trabajo cerrado y gasto generado)
   const inc1 = await Incidencia.create({
     edificioId: edificio._id,
     espacio: 'Unidad 1A',
@@ -262,17 +285,11 @@ const seed = async () => {
   });
 
   await Gasto.create({
-    edificioId: edificio._id,
-    trabajoId: tInc1._id,
-    tipo: 'CORRECTIVO',
-    monto: 18000,
-    concepto: 'Reparación pérdida cañería — Unidad 1A',
-    comprobante: null,
-    fecha: new Date('2024-11-06'),
-    createdAt: new Date('2024-11-06')
+    edificioId: edificio._id, trabajoId: tInc1._id, tipo: 'CORRECTIVO',
+    monto: 18000, concepto: 'Reparación pérdida cañería — Unidad 1A',
+    comprobante: null, fecha: new Date('2024-11-06')
   });
 
-  // Incidencia 2: CERRADA (electricidad)
   const inc2 = await Incidencia.create({
     edificioId: edificio._id,
     espacio: 'Pasillo piso 2',
@@ -304,17 +321,11 @@ const seed = async () => {
   });
 
   await Gasto.create({
-    edificioId: edificio._id,
-    trabajoId: tInc2._id,
-    tipo: 'CORRECTIVO',
-    monto: 12500,
-    concepto: 'Reparación eléctrica pasillo piso 2',
-    comprobante: null,
-    fecha: new Date('2024-10-13'),
-    createdAt: new Date('2024-10-13')
+    edificioId: edificio._id, trabajoId: tInc2._id, tipo: 'CORRECTIVO',
+    monto: 12500, concepto: 'Reparación eléctrica pasillo piso 2',
+    comprobante: null, fecha: new Date('2024-10-13')
   });
 
-  // Incidencia 3: EN_PROGRESO (trabajo asignado, sin finalizar)
   const inc3 = await Incidencia.create({
     edificioId: edificio._id,
     espacio: 'Terraza',
@@ -344,11 +355,8 @@ const seed = async () => {
     createdAt: new Date('2025-01-16')
   });
 
-  // Incidencia 4: ABIERTA (recién reportada, sin trabajo)
   await Incidencia.create({
-    edificioId: edificio._id,
-    espacio: 'Hall de entrada',
-    ocupanteId: oc2._id,
+    edificioId: edificio._id, espacio: 'Hall de entrada', ocupanteId: oc2._id,
     titulo: 'Puerta de entrada no cierra bien',
     descripcion: 'La puerta principal del edificio no cierra correctamente, se necesita ajustar la cerradura.',
     categoria: 'cerrajeria', prioridad: 'alta', estado: 'ABIERTA',
@@ -356,11 +364,8 @@ const seed = async () => {
     createdAt: new Date('2025-04-01')
   });
 
-  // Incidencia 5: ABIERTA (baja prioridad)
   await Incidencia.create({
-    edificioId: edificio._id,
-    espacio: 'SUM',
-    ocupanteId: oc3._id,
+    edificioId: edificio._id, espacio: 'SUM', ocupanteId: oc3._id,
     titulo: 'Ventilador del SUM hace ruido',
     descripcion: 'El ventilador de techo del salón de usos múltiples hace un ruido molesto al girar.',
     categoria: 'electricidad', prioridad: 'baja', estado: 'ABIERTA',
@@ -368,11 +373,8 @@ const seed = async () => {
     createdAt: new Date('2025-04-10')
   });
 
-  // Incidencia 6: RECHAZADA
   await Incidencia.create({
-    edificioId: edificio._id,
-    espacio: 'Unidad 2A',
-    ocupanteId: oc2._id,
+    edificioId: edificio._id, espacio: 'Unidad 2A', ocupanteId: oc2._id,
     titulo: 'Pintura del interior del departamento',
     descripcion: 'Quiero pintar el interior del departamento y solicito que el consorcio lo cubra.',
     categoria: 'albanileria', prioridad: 'baja', estado: 'RECHAZADA',
@@ -386,11 +388,8 @@ const seed = async () => {
     createdAt: new Date('2024-09-21')
   });
 
-  // Incidencia 7: RESUELTA (esperando confirmación del admin)
   const inc7 = await Incidencia.create({
-    edificioId: edificio._id,
-    espacio: 'Cochera',
-    ocupanteId: oc4._id,
+    edificioId: edificio._id, espacio: 'Cochera', ocupanteId: oc4._id,
     titulo: 'Lámpara de cochera fundida',
     descripcion: 'La luz de la cochera B no funciona desde hace una semana.',
     categoria: 'electricidad', prioridad: 'media', estado: 'RESUELTA',
@@ -415,28 +414,22 @@ const seed = async () => {
     createdAt: new Date('2025-03-10')
   });
 
-  console.log('7 incidencias creadas (cerradas, en progreso, abiertas, rechazada, resuelta)');
+  console.log('7 incidencias creadas');
 
   // ── 5. PLANES E INSTANCIAS DE MANTENIMIENTO ───────────────
-  // Plan 1: Ascensores — trimestral
   const plan1 = await PlanMantenimiento.create({
     edificioId: edificio._id,
     tarea: 'Revisión y mantenimiento de ascensores',
-    especialidad: 'ascensores',
-    frecuencia: 'trimestral',
-    activo: true
+    especialidad: 'ascensores', frecuencia: 'trimestral', activo: true
   });
 
   const inst1 = await InstanciaMantenimiento.create({
-    planId: plan1._id,
-    fechaProgramada: new Date('2025-01-15'),
-    estado: 'CERRADA',
-    createdAt: new Date('2025-01-01')
+    planId: plan1._id, fechaProgramada: new Date('2025-01-15'),
+    estado: 'CERRADA', createdAt: new Date('2025-01-01')
   });
 
   const tPrev1 = await Trabajo.create({
-    instanciaMantenimientoId: inst1._id,
-    proveedorId: prov4._id,
+    instanciaMantenimientoId: inst1._id, proveedorId: prov4._id,
     descripcion: 'Revisión semestral de ascensor: lubricación, ajuste de cables y prueba de seguridad',
     monto: 35000, estado: 'CERRADO', evidencias: [],
     historialEstados: [
@@ -449,26 +442,18 @@ const seed = async () => {
   });
 
   await Gasto.create({
-    edificioId: edificio._id,
-    trabajoId: tPrev1._id,
-    tipo: 'PREVENTIVO',
-    monto: 35000,
-    concepto: 'Mantenimiento preventivo ascensor — Enero 2025',
-    comprobante: null,
-    fecha: new Date('2025-01-17'),
-    createdAt: new Date('2025-01-17')
+    edificioId: edificio._id, trabajoId: tPrev1._id, tipo: 'PREVENTIVO',
+    monto: 35000, concepto: 'Mantenimiento preventivo ascensor — Enero 2025',
+    comprobante: null, fecha: new Date('2025-01-17')
   });
 
   const inst2 = await InstanciaMantenimiento.create({
-    planId: plan1._id,
-    fechaProgramada: new Date('2025-04-15'),
-    estado: 'EN_CURSO',
-    createdAt: new Date('2025-04-01')
+    planId: plan1._id, fechaProgramada: new Date('2025-04-15'),
+    estado: 'EN_CURSO', createdAt: new Date('2025-04-01')
   });
 
   await Trabajo.create({
-    instanciaMantenimientoId: inst2._id,
-    proveedorId: prov4._id,
+    instanciaMantenimientoId: inst2._id, proveedorId: prov4._id,
     descripcion: 'Revisión trimestral ascensor — Abril 2025',
     monto: 35000, estado: 'ASIGNADO', evidencias: [],
     historialEstados: [
@@ -477,25 +462,19 @@ const seed = async () => {
     createdAt: new Date('2025-04-02')
   });
 
-  // Plan 2: Limpieza de tanques — semestral
   const plan2 = await PlanMantenimiento.create({
     edificioId: edificio._id,
     tarea: 'Limpieza y desinfección de tanques de agua',
-    especialidad: 'plomeria',
-    frecuencia: 'semestral',
-    activo: true
+    especialidad: 'plomeria', frecuencia: 'semestral', activo: true
   });
 
   const inst3 = await InstanciaMantenimiento.create({
-    planId: plan2._id,
-    fechaProgramada: new Date('2024-12-01'),
-    estado: 'CERRADA',
-    createdAt: new Date('2024-11-15')
+    planId: plan2._id, fechaProgramada: new Date('2024-12-01'),
+    estado: 'CERRADA', createdAt: new Date('2024-11-15')
   });
 
   const tPrev2 = await Trabajo.create({
-    instanciaMantenimientoId: inst3._id,
-    proveedorId: prov1._id,
+    instanciaMantenimientoId: inst3._id, proveedorId: prov1._id,
     descripcion: 'Vaciado, limpieza, desinfección y llenado de tanques',
     monto: 22000, estado: 'CERRADO', evidencias: [],
     historialEstados: [
@@ -508,34 +487,23 @@ const seed = async () => {
   });
 
   await Gasto.create({
-    edificioId: edificio._id,
-    trabajoId: tPrev2._id,
-    tipo: 'PREVENTIVO',
-    monto: 22000,
-    concepto: 'Limpieza de tanques — Diciembre 2024',
-    comprobante: null,
-    fecha: new Date('2024-12-02'),
-    createdAt: new Date('2024-12-02')
+    edificioId: edificio._id, trabajoId: tPrev2._id, tipo: 'PREVENTIVO',
+    monto: 22000, concepto: 'Limpieza de tanques — Diciembre 2024',
+    comprobante: null, fecha: new Date('2024-12-02')
   });
 
-  // Plan 3: Revisión eléctrica — anual (inactivo)
   await PlanMantenimiento.create({
     edificioId: edificio._id,
     tarea: 'Revisión general de tableros eléctricos',
-    especialidad: 'electricidad',
-    frecuencia: 'anual',
-    activo: false
+    especialidad: 'electricidad', frecuencia: 'anual', activo: false
   });
 
-  // Instancia programada — plan 2, próxima
   await InstanciaMantenimiento.create({
-    planId: plan2._id,
-    fechaProgramada: new Date('2025-06-01'),
-    estado: 'PROGRAMADA',
-    createdAt: new Date('2025-04-01')
+    planId: plan2._id, fechaProgramada: new Date('2025-06-01'),
+    estado: 'PROGRAMADA', createdAt: new Date('2025-04-01')
   });
 
-  console.log('3 planes de mantenimiento y 4 instancias creadas');
+  console.log('3 planes y 4 instancias creadas');
 
   // ── 6. AVISOS ─────────────────────────────────────────────
   await Aviso.insertMany([
@@ -548,19 +516,19 @@ const seed = async () => {
     {
       edificioId: edificio._id, adminId: admin._id,
       titulo: 'Recordatorio: reunión de consorcio',
-      cuerpo: 'Se convoca a todos los propietarios a la reunión anual de consorcio el día viernes 16 de mayo a las 19:00 hs en el SUM del edificio. Orden del día: aprobación de expensas, obras programadas y varios.',
+      cuerpo: 'Se convoca a todos los propietarios a la reunión anual de consorcio el día viernes 16 de mayo a las 19:00 hs en el SUM del edificio.',
       fechaPublicacion: new Date('2025-05-01')
     },
     {
       edificioId: edificio._id, adminId: admin._id,
       titulo: 'Nuevo reglamento de uso del SUM',
-      cuerpo: 'Se informa que a partir del 1 de mayo rige el nuevo reglamento de uso del Salón de Usos Múltiples. Las reservas deben realizarse con 48 hs de anticipación a través de la administración. Capacidad máxima: 40 personas.',
+      cuerpo: 'Se informa que a partir del 1 de mayo rige el nuevo reglamento de uso del Salón de Usos Múltiples.',
       fechaPublicacion: new Date('2025-04-28')
     },
     {
       edificioId: edificio._id, adminId: admin._id,
       titulo: 'Mantenimiento del ascensor — Semana del 14/4',
-      cuerpo: 'Durante la semana del 14 al 18 de abril el ascensor estará fuera de servicio por su mantenimiento trimestral. Disculpen las molestias.',
+      cuerpo: 'Durante la semana del 14 al 18 de abril el ascensor estará fuera de servicio por su mantenimiento trimestral.',
       fechaPublicacion: new Date('2025-04-10')
     }
   ]);
@@ -569,42 +537,12 @@ const seed = async () => {
 
   // ── 7. DOCUMENTOS ─────────────────────────────────────────
   await Documento.insertMany([
-    {
-      edificioId: edificio._id,
-      nombre: 'Reglamento de Copropiedad y Convivencia',
-      url: 'https://res.cloudinary.com/demo/raw/upload/reglamento.pdf',
-      visibilidad: 'todos', categoria: 'reglamento'
-    },
-    {
-      edificioId: edificio._id,
-      nombre: 'Acta Asamblea Ordinaria — Abril 2025',
-      url: 'https://res.cloudinary.com/demo/raw/upload/acta_abril_2025.pdf',
-      visibilidad: 'todos', categoria: 'acta'
-    },
-    {
-      edificioId: edificio._id,
-      nombre: 'Acta Asamblea Extraordinaria — Noviembre 2024',
-      url: 'https://res.cloudinary.com/demo/raw/upload/acta_nov_2024.pdf',
-      visibilidad: 'todos', categoria: 'acta'
-    },
-    {
-      edificioId: edificio._id,
-      nombre: 'Plano del Edificio — Planta Baja',
-      url: 'https://res.cloudinary.com/demo/raw/upload/plano_pb.pdf',
-      visibilidad: 'solo_admin', categoria: 'plano'
-    },
-    {
-      edificioId: edificio._id,
-      nombre: 'Contrato Empresa Limpieza 2025',
-      url: 'https://res.cloudinary.com/demo/raw/upload/contrato_limpieza.pdf',
-      visibilidad: 'solo_admin', categoria: 'contrato'
-    },
-    {
-      edificioId: edificio._id,
-      nombre: 'Informe Técnico Ascensor — Enero 2025',
-      url: 'https://res.cloudinary.com/demo/raw/upload/informe_ascensor.pdf',
-      visibilidad: 'todos', categoria: 'informe'
-    }
+    { edificioId: edificio._id, nombre: 'Reglamento de Copropiedad y Convivencia', url: 'https://res.cloudinary.com/demo/raw/upload/reglamento.pdf', visibilidad: 'todos', categoria: 'reglamento' },
+    { edificioId: edificio._id, nombre: 'Acta Asamblea Ordinaria — Abril 2025',     url: 'https://res.cloudinary.com/demo/raw/upload/acta_abril_2025.pdf', visibilidad: 'todos', categoria: 'acta' },
+    { edificioId: edificio._id, nombre: 'Acta Asamblea Extraordinaria — Nov 2024',  url: 'https://res.cloudinary.com/demo/raw/upload/acta_nov_2024.pdf', visibilidad: 'todos', categoria: 'acta' },
+    { edificioId: edificio._id, nombre: 'Plano del Edificio — Planta Baja',         url: 'https://res.cloudinary.com/demo/raw/upload/plano_pb.pdf', visibilidad: 'solo_admin', categoria: 'plano' },
+    { edificioId: edificio._id, nombre: 'Contrato Empresa Limpieza 2025',           url: 'https://res.cloudinary.com/demo/raw/upload/contrato_limpieza.pdf', visibilidad: 'solo_admin', categoria: 'contrato' },
+    { edificioId: edificio._id, nombre: 'Informe Técnico Ascensor — Enero 2025',    url: 'https://res.cloudinary.com/demo/raw/upload/informe_ascensor.pdf', visibilidad: 'todos', categoria: 'informe' }
   ]);
 
   console.log('6 documentos creados');
@@ -612,18 +550,17 @@ const seed = async () => {
   // ── Resumen ───────────────────────────────────────────────
   console.log('\nSeed completado exitosamente');
   console.log('─────────────────────────────────────────');
-  console.log('CREDENCIALES DE ACCESO:');
   console.log('admin@consorcio365.com      / Admin123!');
-  console.log('juan@mail.com               / Cambiar123!  (ocupante 1A)');
-  console.log('laura@mail.com              / Cambiar123!  (ocupante 2A)');
-  console.log('roberto@mail.com            / Cambiar123!  (ocupante 1B)');
-  console.log('valeria@mail.com            / Cambiar123!  (ocupante 2B)');
-  console.log('diego@mail.com              / Cambiar123!  (ocupante 3A)');
-  console.log('sofia@mail.com              / Cambiar123!  (ocupante 4B — PENDIENTE)');
-  console.log('carlos.plomero@mail.com     / Cambiar123!  (proveedor plomería)');
-  console.log('marcelo.electrico@mail.com  / Cambiar123!  (proveedor electricidad)');
-  console.log('hugo.albanil@mail.com       / Cambiar123!  (proveedor albañilería)');
-  console.log('pablo.ascensores@mail.com   / Cambiar123!  (proveedor ascensores)');
+  console.log('juan@mail.com               / Cambiar123!');
+  console.log('laura@mail.com              / Cambiar123!');
+  console.log('roberto@mail.com            / Cambiar123!');
+  console.log('valeria@mail.com            / Cambiar123!');
+  console.log('diego@mail.com              / Cambiar123!');
+  console.log('sofia@mail.com              / Cambiar123!  (PENDIENTE)');
+  console.log('carlos.plomero@mail.com     / Cambiar123!');
+  console.log('marcelo.electrico@mail.com  / Cambiar123!');
+  console.log('hugo.albanil@mail.com       / Cambiar123!');
+  console.log('pablo.ascensores@mail.com   / Cambiar123!');
   console.log('─────────────────────────────────────────');
 
   mongoose.connection.close();
