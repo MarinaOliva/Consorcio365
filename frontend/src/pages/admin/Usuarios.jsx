@@ -14,36 +14,58 @@ import SuccessModal from "../../components/shared/SuccessModal";
 
 
 function UsuariosAdmin() {
-  const [search, setSearch] = useState("");
+  
+const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("Todos");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
-  
-  const handleSave = () => {
-  setIsModalOpen(false);
-  setIsSuccessOpen(true);
+
+  // Fuente de verdad: estado (para que se reflejen los cambios al guardar)
+  const [users, setUsers] = useState(adminUsers);
+
+  // Modal + borrador editable
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [draft, setDraft] = useState(null);
+
+  // Abrir modal: se clona el user para editar sin mutar el original, se guarda en draft
+  const handleEdit = (user) => {
+   const copy =
+    typeof structuredClone === "function"
+      ? structuredClone(user)
+      : JSON.parse(JSON.stringify(user));
+
+   setDraft(copy);
+   setIsModalOpen(true);
   };
 
-  // filtrado
-  const filteredUsers = adminUsers.filter((user) => {
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setDraft(null);
+  };
+
+  // Guardar: recibe lo editado y lo persiste en users
+  const handleSave = (updatedEntity) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === updatedEntity.id ? updatedEntity : u))
+    );
+
+    handleCloseModal();
+    setIsSuccessOpen(true);
+  };
+
+  // Filtrado: ahora se hace sobre users (estado)
+  const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(search.toLowerCase()) ||
       user.email.toLowerCase().includes(search.toLowerCase());
 
     const matchesRole = roleFilter === "Todos" || user.role === roleFilter;
-
-    const matchesStatus =
-      statusFilter === "Todos" || user.status === statusFilter;
+    const matchesStatus = statusFilter === "Todos" || user.status === statusFilter;
 
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const handleEdit = (user) => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  };
 
   return (
     <DashboardLayout
@@ -70,9 +92,10 @@ function UsuariosAdmin() {
 
       <EditEntityModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
         onSave={handleSave}
-        entity={selectedUser}
+        draft={draft}
+        setDraft={setDraft}
       />
 
       <SuccessModal

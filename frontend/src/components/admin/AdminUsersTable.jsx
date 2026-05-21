@@ -1,7 +1,7 @@
 import DataTable from "../dashboard/DataTable";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 
-function AdminUsersTable({ users = [], onEdit, }) {
+function AdminUsersTable({ users = [], onEdit = () => {}, }) {
   const columns = [
     {
       key: "name",
