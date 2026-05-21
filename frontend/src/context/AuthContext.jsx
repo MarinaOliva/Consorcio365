@@ -1,26 +1,37 @@
-import { createContext, useState } from 'react'
+import { createContext, useEffect, useState } from "react";
+import { loginRequest } from "../services/authService";
 
-export const AuthContext = createContext(null)
+export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (role) => {
-    console.log('LOGIN llamado con rol:', role)
+ 
+  useEffect(() => {
+	const stored = localStorage.getItem("user");
+	if (stored) setUser(JSON.parse(stored));
+	setLoading(false);
+  }, []);
 
-    setUser({
-      name: 'Usuario Demo',
-      role,
-    })
-  }
+  const login = async (email, password) => {
+	const { token, user } = await loginRequest(email, password);
+	localStorage.setItem("token", token);
+	localStorage.setItem("user", JSON.stringify(user));
+	setUser(user);
+	return user;
+  };
 
   const logout = () => {
-    setUser(null)
-  }
+	localStorage.removeItem("token");
+	localStorage.removeItem("user");
+	setUser(null);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  )
+	<AuthContext.Provider value={{ user, login, logout, loading }}>
+  	{children}
+	</AuthContext.Provider>
+  );
 }
+
