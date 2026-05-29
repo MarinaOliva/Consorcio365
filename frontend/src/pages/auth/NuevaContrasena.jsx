@@ -4,8 +4,11 @@ import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import logo from "../../assets/LOGO.png";
 import { cambiarPasswordRequest } from "../../services/passwordService";
+import { useAuth } from "../../hooks/useAuth";
 
 function NuevaContrasena({ isOpen, onSuccess }) {
+  const { updateUser } = useAuth();
+
   const [passwordActual, setPasswordActual] = useState("");
   const [nueva, setNueva] = useState("");
   const [confirmar, setConfirmar] = useState("");
@@ -36,6 +39,13 @@ function NuevaContrasena({ isOpen, onSuccess }) {
 	setLoading(true);
 	try {
   	await cambiarPasswordRequest(passwordActual, nueva);
+
+  	//  Actualizar el user del context
+  	updateUser({
+    	debeCambiarPassword: false,
+    	estado: "ACTIVO",
+  	});
+
   	onSuccess?.();
 	} catch (err) {
   	const msg =
@@ -50,7 +60,11 @@ function NuevaContrasena({ isOpen, onSuccess }) {
 
   return (
 	<Modal isOpen={isOpen}>
-  	<img src= {logo} alt="Logo" className="mx-auto mb-0 w-24 opacity-90" />
+  	<img
+    	src={logo}
+    	alt="Consorcio365"
+    	className="mx-auto mb-0 w-24 opacity-90"
+  	/>
 
   	<h3 className="text-base font-semibold text-center mt-1 mb-0 text-textMain">
     	Crear nueva contraseña

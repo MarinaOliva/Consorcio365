@@ -26,10 +26,15 @@ function Login() {
 
   // Si ya está logueada, no deja volver al login
   useEffect(() => {
-	if (user) {
+	if (user && 
+		!user.debeCambiarPassword &&
+		!showNuevaContrasena &&
+		!showConfirmacion
+	)
+		 {
   	navigate(`/${user.role}`, { replace: true });
 	}
-  }, [user, navigate]);
+  }, [user, navigate, showNuevaContrasena, showConfirmacion]);
 
   const handleSubmit = async (e) => {
 	e.preventDefault();

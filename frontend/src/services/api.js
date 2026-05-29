@@ -12,15 +12,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-
+// Solo desloguear automáticamente en endpoints NO relacionados con auth
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-	const isLoginRequest = error.config?.url?.includes("/auth/login");
+	const url = error.config?.url || "";
+
+	// Endpoints donde un 401 NO debe desloguear automáticamente
+	const isAuthEndpoint =
+  	url.includes("/auth/login") ||
+  	url.includes("/auth/cambiar-password") ||
+  	url.includes("/auth/reset-password") ||
+  	url.includes("/auth/recuperar");
+
 	const hadToken = !!localStorage.getItem("token");
 
-	// Solo desloguea si NO es un intento de login y el user ya estaba logueado
-	if (error.response?.status === 401 && !isLoginRequest && hadToken) {
+	if (error.response?.status === 401 && !isAuthEndpoint && hadToken) {
   	localStorage.removeItem("token");
   	localStorage.removeItem("user");
   	window.location.href = "/login";
@@ -31,5 +38,4 @@ api.interceptors.response.use(
 );
 
 export default api;
-
 
