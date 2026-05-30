@@ -1,3 +1,5 @@
+// src/components/dashboard/SectionCard.jsx
+
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 
@@ -6,16 +8,16 @@ function SectionCard({
   children,
   actionLabel,
   onAction,
-  //actionButtonClassName = "",
+  actionButtonClassName = "",
   className = "",
 }) {
   return (
     <Card
       className={`
-        border-secondary/70 
-        bg-white 
-        p-4 
-        shadow-[3px_5px_8px_rgba(7,40,48,0.25)] 
+        border-secondary/70
+        bg-white
+        p-4
+        shadow-[3px_5px_8px_rgba(7,40,48,0.25)]
         ${className}
       `}
     >
@@ -29,7 +31,7 @@ function SectionCard({
             size="sm"
             onClick={onAction}
             variant="elevated"
-            className="{actionButtonClassName}"
+            className={actionButtonClassName}
           >
             {actionLabel}
           </Button>
