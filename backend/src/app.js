@@ -28,7 +28,7 @@ app.use('/api/usuarios', require('./modules/usuarios/usuarios.routes'));
 app.use('/api/edificios', require('./modules/edificios/edificios.routes'));    
 app.use('/api/unidades', require('./modules/unidades/unidades.routes'));
 app.use('/api/incidencias', require('./modules/incidencias/incidencias.routes'));
-// app.use('/api/trabajos',      
+app.use('/api/trabajos', require('./modules/trabajos/trabajos.routes'));
 // app.use('/api/gastos',        
 // app.use('/api/mantenimiento', 
 // app.use('/api/avisos',        

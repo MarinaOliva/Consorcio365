@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Test Socket Proveedor</title>
+</head>
+<body>
+  <h2>Proveedor escuchando notificaciones...</h2>
+  <pre id="log"></pre>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+	const ID_DEL_PROVEEDOR = '6a0d01556ac5a46aeac25b3e';
+
+	const socket = io('http://localhost:5000');
+	const log = document.getElementById('log');
+
+	socket.on('connect', () => {
+  	log.textContent += 'Conectado\n';
+  	socket.emit('join', {
+    	tipo: 'proveedor',
+    	usuarioId: ID_DEL_PROVEEDOR
+  	});
+	});
+
+	socket.on('trabajo-asignado', (data) => {
+  	log.textContent += '\nNUEVO TRABAJO ASIGNADO:\n' + JSON.stringify(data, null, 2);
+	});
+  </script>
+</body>
+</html>
+

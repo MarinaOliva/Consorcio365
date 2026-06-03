@@ -9,6 +9,7 @@ const setupSockets = (io) => {
   	}
   	if (usuarioId) {
     	socket.join(`user:${usuarioId}`);
+		console.log(`Socket ${socket.id} se unió a room user:${usuarioId}`);
   	}
 	});
 
