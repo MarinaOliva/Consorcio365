@@ -1,14 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import NuevoUsuarioModal from "../../components/admin/NuevoUsuarioModal";
 
-import DashboardLayout from "../../components/dashboard/DashboardLayout";
+import ContenedorPanelPorRol from "../../components/dashboard/ContenedorPanelPorRol";
 import SectionCard from "../../components/dashboard/SectionCard";
 
 import AdminUsersToolbar from "../../components/admin/AdminUsersToolbar";
 import AdminUsersTable from "../../components/admin/AdminUsersTable";
-
-
-import { useAuth } from "../../hooks/useAuth";
-import { adminMenuItems } from "../../data/adminDashboardData";
 import EditEntityModal from "../../components/admin/EditEntityModal";
 import SuccessModal from "../../components/shared/SuccessModal";
 
@@ -19,8 +16,6 @@ import {
 } from "../../services/usersService";
 
 function UsuariosAdmin() {
-  const { user: authUser } = useAuth();
-
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("Todos");
   const [statusFilter, setStatusFilter] = useState("Todos");
@@ -33,221 +28,260 @@ function UsuariosAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [draft, setDraft] = useState(null);
   const [readOnly, setReadOnly] = useState(false);
+  
+  
+  // Modal de creación
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Modal de éxito
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("Cambios guardados con éxito");
-
-  // Datos del header (admin logueado)
-  const displayUser = useMemo(() => {
-	if (!authUser) return null;
-	const ROLE_LABELS = {
-  	admin: "Administrador",
-  	ocupante: "Ocupante",
-  	proveedor: "Proveedor",
-	};
-	return {
-  	name: authUser.name,
-  	role: ROLE_LABELS[authUser.role] || authUser.role,
-	};
-  }, [authUser]);
-
-  // Cargar usuarios desde el back
-  const loadUsers = async () => {
-	setLoading(true);
-	setError("");
-	try {
-  	const data = await getUsuarios();
-  	const adapted = data.map((u) => ({
-    	...u,
-    	displayName: `${u.name} ${u.lastName}`.trim(),
-  	}));
-  	setUsers(adapted);
-	} catch (err) {
-  	const msg =
-    	err?.response?.data?.message ||
-    	err?.message ||
-    	"No se pudieron cargar los usuarios";
-  	setError(msg);
-	} finally {
-  	setLoading(false);
-	}
-  };
+  const [successMessage, setSuccessMessage] = useState(
+    "Cambios guardados con éxito"
+  );
 
   useEffect(() => {
-	loadUsers();
+    let activo = true;
+
+    async function cargarUsuarios() {
+      try {
+        const data = await getUsuarios();
+
+        if (!activo) return;
+
+        const adapted = data.map((u) => ({
+          ...u,
+          displayName: `${u.name} ${u.lastName}`.trim(),
+        }));
+
+        setUsers(adapted);
+      } catch (err) {
+        if (!activo) return;
+
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "No se pudieron cargar los usuarios";
+
+        setError(msg);
+      } finally {
+        if (activo) {
+          setLoading(false);
+        }
+      }
+    }
+
+    cargarUsuarios();
+
+    return () => {
+      activo = false;
+    };
   }, []);
 
-
   // Editar (modal en modo edición)
- 
   const handleEdit = (row) => {
-	const copy =
-  	typeof structuredClone === "function"
-    	? structuredClone(row)
-    	: JSON.parse(JSON.stringify(row));
-	setDraft(copy);
-	setReadOnly(false);
-	setIsModalOpen(true);
+    const copy =
+      typeof structuredClone === "function"
+        ? structuredClone(row)
+        : JSON.parse(JSON.stringify(row));
+
+    setDraft(copy);
+    setReadOnly(false);
+    setIsModalOpen(true);
   };
 
-  
   // Ver (modal en modo solo lectura)
- 
   const handleView = (row) => {
-	const copy =
-  	typeof structuredClone === "function"
-    	? structuredClone(row)
-    	: JSON.parse(JSON.stringify(row));
-	setDraft(copy);
-	setReadOnly(true);
-	setIsModalOpen(true);
+    const copy =
+      typeof structuredClone === "function"
+        ? structuredClone(row)
+        : JSON.parse(JSON.stringify(row));
+
+    setDraft(copy);
+    setReadOnly(true);
+    setIsModalOpen(true);
   };
 
- 
-  //soft delete: pasa a INACTIVO
- 
+  // Soft delete: pasa a INACTIVO
   const handleDelete = async (row) => {
-	const confirmar = window.confirm(
-  	`¿Desactivar a ${row.displayName || row.name}?`
-	);
-	if (!confirmar) return;
+    const confirmar = window.confirm(
+      `¿Desactivar a ${row.displayName || row.name}?`
+    );
+    if (!confirmar) return;
 
-	try {
-  	await deleteUsuario(row.id);
-  	setUsers((prev) =>
-    	prev.map((u) =>
-      	u.id === row.id ? { ...u, status: "Inactivo" } : u
-    	)
-  	);
-  	setSuccessMessage("Estado cambiado con éxito");
-  	setIsSuccessOpen(true);
-	} catch (err) {
-  	const msg =
-    	err?.response?.data?.message ||
-    	err?.message ||
-    	"No se pudo desactivar el usuario";
-  	alert(msg);
-	}
+    try {
+      await deleteUsuario(row.id);
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === row.id ? { ...u, status: "Inactivo" } : u
+        )
+      );
+
+      setSuccessMessage("Estado cambiado con éxito");
+      setIsSuccessOpen(true);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "No se pudo desactivar el usuario";
+
+      alert(msg);
+    }
   };
 
-  
-  // Guardar (PUT al back)
-  
+  // Guardar edición (PUT al back)
   const handleSave = async (updatedEntity) => {
-	try {
-  	await updateUsuario(updatedEntity.id, updatedEntity);
+    try {
+      await updateUsuario(updatedEntity.id, updatedEntity);
 
-  	// Actualizamos la lista localmente
-  	setUsers((prev) =>
-    	prev.map((u) =>
-      	u.id === updatedEntity.id
-        	? {
-            	...updatedEntity,
-            	displayName: `${updatedEntity.name} ${updatedEntity.lastName}`.trim(),
-          	}
-        	: u
-    	)
-  	);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === updatedEntity.id
+            ? {
+                ...updatedEntity,
+                displayName: `${updatedEntity.name ?? ""} ${updatedEntity.lastName ?? ""}`.trim(),
+              }
+            : u
+        )
+      );
 
-  	handleCloseModal();
-  	setSuccessMessage("Cambios guardados con éxito");
-  	setIsSuccessOpen(true);
-	} catch (err) {
-  	const msg =
-    	err?.response?.data?.message ||
-    	err?.message ||
-    	"No se pudo guardar el usuario";
-  	alert(msg);
-	}
+      handleCloseModal();
+      setSuccessMessage("Cambios guardados con éxito");
+      setIsSuccessOpen(true);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "No se pudo guardar el usuario";
+
+      alert(msg);
+    }
   };
 
   const handleCloseModal = () => {
-	setIsModalOpen(false);
-	setDraft(null);
-	setReadOnly(false);
+    setIsModalOpen(false);
+    setDraft(null);
+    setReadOnly(false);
   };
 
- 
-  // Filtrado (local sobre la lista)
- 
-  const filteredUsers = users.filter((u) => {
-	const matchesSearch =
-  	(u.displayName || "").toLowerCase().includes(search.toLowerCase()) ||
-  	(u.email || "").toLowerCase().includes(search.toLowerCase());
+ // Alta local del nuevo usuario
+  // (Más adelante esto se puede reemplazar por createUsuario() cuando exista el endpoint)
+  const handleCreateUser = (nuevoUsuario) => {
+    const usuarioNormalizado = {
+      id: Date.now(),
+      ...nuevoUsuario,
+      displayName: `${nuevoUsuario.name ?? ""} ${
+        nuevoUsuario.lastName ?? ""
+      }`.trim(),
+      status: nuevoUsuario.status || "Pendiente",
+    };
 
-	const matchesRole = roleFilter === "Todos" || u.role === roleFilter;
-	const matchesStatus = statusFilter === "Todos" || u.status === statusFilter;
+    setUsers((prev) => [usuarioNormalizado, ...prev]);
+    setIsCreateModalOpen(false);
+    setSuccessMessage("Usuario creado con éxito");
+    setIsSuccessOpen(true);
+  };
 
-	return matchesSearch && matchesRole && matchesStatus;
-  });
+  // Filtrado local sobre la lista
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      const matchesSearch =
+        (u.displayName || "").toLowerCase().includes(search.toLowerCase()) ||
+        (u.email || "").toLowerCase().includes(search.toLowerCase());
 
-  
+      const matchesRole = roleFilter === "Todos" || u.role === roleFilter;
+      const matchesStatus =
+        statusFilter === "Todos" || u.status === statusFilter;
+
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, search, roleFilter, statusFilter]);
+
   // Adaptación final para la tabla
+  const tableRows = useMemo(() => {
+    return filteredUsers.map((u) => ({
+      ...u,
+      name: u.displayName, // la tabla lee "name"
+    }));
+  }, [filteredUsers]);
 
-  const tableRows = filteredUsers.map((u) => ({
-	...u,
-	name: u.displayName, // la tabla lee "name"
-  }));
+  // crear nuevo usuario (modal en modo edición pero sin draft previo)
+  /*const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);*/
+
+  const handleOpenCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
 
   return (
-	<DashboardLayout
-  	menuItems={adminMenuItems}
-  	user={displayUser}
-  	title="Usuarios"
-  	subtitle="Gestión de usuarios del sistema"
-	>
-  	<section className="mx-auto max-w-[1120px] space-y-5">
-    	<AdminUsersToolbar
-      	search={search}
-      	setSearch={setSearch}
-      	roleFilter={roleFilter}
-      	setRoleFilter={setRoleFilter}
-      	statusFilter={statusFilter}
-      	setStatusFilter={setStatusFilter}
-    	/>
+    <ContenedorPanelPorRol
+      titulo="Usuarios"
+      subtitulo="Gestión de usuarios del sistema"
+    >
+      <section className="mx-auto max-w-[1120px] space-y-5">
+        <AdminUsersToolbar
+          search={search}
+          setSearch={setSearch}
+          roleFilter={roleFilter}
+          setRoleFilter={setRoleFilter}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          onNuevoUsuario={handleOpenCreateModal}
+        />
 
-    	<SectionCard title="Lista de usuarios">
-      	{loading && (
-        	<p className="text-sm text-textMuted py-4">
-          	Cargando usuarios...
-        	</p>
-      	)}
+        <SectionCard title="Lista de usuarios">
+          {loading && (
+            <p className="py-4 text-sm text-textMuted">
+              Cargando usuarios...
+            </p>
+          )}
 
-      	{error && (
-        	<div className="rounded-md border border-red-200 bg-red-50 p-3">
-          	<p className="text-sm text-red-600">{error}</p>
-        	</div>
-      	)}
+          {error && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-3">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
 
-      	{!loading && !error && (
-        	<AdminUsersTable
-          	users={tableRows}
-          	onEdit={handleEdit}
-          	onView={handleView}
-          	onDelete={handleDelete}
-        	/>
-      	)}
-    	</SectionCard>
-  	</section>
+          {!loading && !error && (
+            <AdminUsersTable
+              users={tableRows}
+              onEdit={handleEdit}
+              onView={handleView}
+              onDelete={handleDelete}
+            />
+          )}
+        </SectionCard>
+      </section>
 
-  	<EditEntityModal
-    	isOpen={isModalOpen}
-    	onClose={handleCloseModal}
-    	onSave={handleSave}
-    	draft={draft}
-    	setDraft={setDraft}
-    	readOnly={readOnly}
-  	/>
+      <EditEntityModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSave}
+        draft={draft}
+        setDraft={setDraft}
+        readOnly={readOnly}
+      />
 
-  	<SuccessModal
-    	isOpen={isSuccessOpen}
-    	onClose={() => setIsSuccessOpen(false)}
-    	message={successMessage}
-  	/>
-	</DashboardLayout>
+      <SuccessModal
+        isOpen={isSuccessOpen}
+        onClose={() => setIsSuccessOpen(false)}
+        message={successMessage}
+      />
+	    
+      {isCreateModalOpen && (
+        <NuevoUsuarioModal
+          onClose={handleCloseCreateModal}
+          onCreate={handleCreateUser}
+        />
+      )}
+
+    </ContenedorPanelPorRol>
+    
   );
 }
 
 export default UsuariosAdmin;
-

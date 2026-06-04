@@ -1,5 +1,3 @@
-// src/pages/proveedor/Dashboard.jsx
-
 import ContenedorPanelPorRol from "../../components/dashboard/ContenedorPanelPorRol";
 import PanelGeneralProveedor from "../../components/proveedor/PanelGeneralProveedor";
 

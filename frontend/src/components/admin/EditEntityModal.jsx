@@ -68,12 +68,15 @@ function EditEntityModal({ isOpen, onClose, onSave, draft, setDraft, readOnly = 
 
   const panelMax = isProvider ? "max-w-[640px]" : "max-w-[500px]";
 
-  const titleByRole = {
-	proveedor: "Detalles del proveedor",
-	administrador: "Detalles de Administrador",
-	ocupante: "Detalles del Ocupante",
-  };
-  const title = titleByRole[role] ?? "Detalles de usuario";
+  const etiquetaRol = {
+	proveedor: "proveedor",
+	administrador: "administrador",
+	ocupante: "ocupante",
+	}[role] ?? "usuario";
+
+  const title = readOnly
+	? `Datos del ${etiquetaRol}`
+	: `Editar ${etiquetaRol}`;
 
   const updateField = (key, value) => {
 	if (readOnly) return;
@@ -107,7 +110,7 @@ function EditEntityModal({ isOpen, onClose, onSave, draft, setDraft, readOnly = 
     	{/* Header */}
     	<div className="flex items-center justify-between bg-secondary px-6 py-4 text-white rounded-t-xl">
       	<h2 id="edit-entity-title" className="text-base font-bold">
-        	{readOnly ? title.replace("Detalles", "Ver") : title}
+        	{title}
       	</h2>
       	<button onClick={onClose} className="rounded-md p-1 hover:bg-white/15 transition" aria-label="Cerrar" type="button">
         	<X size={20} />

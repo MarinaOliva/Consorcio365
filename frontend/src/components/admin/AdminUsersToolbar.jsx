@@ -7,6 +7,7 @@ function AdminUsersToolbar({
   setRoleFilter,
   statusFilter,
   setStatusFilter,
+  onNuevoUsuario = () => {},
 }) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -52,7 +53,7 @@ function AdminUsersToolbar({
         </select>
       </div>
 
-      <Button variant="elevated">
+      <Button variant="elevated" onClick={onNuevoUsuario}>
         Nuevo usuario
       </Button>
     </div>

@@ -1,5 +1,3 @@
-// src/pages/ocupante/Documentos.jsx
-
 import PaginaSimpleConLayout from "../../components/shared/PaginaSimpleConLayout";
 
 function DocumentosOcupante() {

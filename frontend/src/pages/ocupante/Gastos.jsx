@@ -1,5 +1,3 @@
-// src/pages/ocupante/Gastos.jsx
-
 import PaginaSimpleConLayout from "../../components/shared/PaginaSimpleConLayout";
 
 function GastosOcupante() {

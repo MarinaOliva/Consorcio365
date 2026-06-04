@@ -1,5 +1,3 @@
-// src/pages/proveedor/Trabajos.jsx
-
 import PaginaSimpleConLayout from "../../components/shared/PaginaSimpleConLayout";
 
 function TrabajosProveedor() {

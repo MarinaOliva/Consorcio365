@@ -1,5 +1,3 @@
-// src/components/admin/PanelGeneralAdmin.jsx
-
 import AdminStatsGrid from "./AdminStatsGrid";
 import AdminRecentIncidents from "./AdminRecentIncidents";
 import AdminMaintenanceList from "./AdminMaintenanceList";

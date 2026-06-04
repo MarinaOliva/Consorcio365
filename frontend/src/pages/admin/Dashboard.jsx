@@ -1,5 +1,3 @@
-// src/pages/admin/Dashboard.jsx
-
 import ContenedorPanelPorRol from "../../components/dashboard/ContenedorPanelPorRol";
 import PanelGeneralAdmin from "../../components/admin/PanelGeneralAdmin";
 

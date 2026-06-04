@@ -1,5 +1,3 @@
-// src/pages/ocupante/Avisos.jsx
-
 import PaginaSimpleConLayout from "../../components/shared/PaginaSimpleConLayout";
 
 function AvisosOcupante() {

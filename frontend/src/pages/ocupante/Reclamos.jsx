@@ -1,5 +1,3 @@
-// src/pages/ocupante/Reclamos.jsx
-
 import PaginaSimpleConLayout from "../../components/shared/PaginaSimpleConLayout";
 
 function ReclamosOcupante() {
