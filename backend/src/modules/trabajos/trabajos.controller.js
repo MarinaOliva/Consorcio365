@@ -2,7 +2,7 @@ const service = require('./trabajos.service');
 
 const crear = async (req, res, next) => {
   try {
-	const result = await service.crear(req.body, req.usuario, io);
+	const result = await service.crear(req.body, req.usuario);
 	return res.status(201).json(result);
   } catch (err) { next(err); }
 };

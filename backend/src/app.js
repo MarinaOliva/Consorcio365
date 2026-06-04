@@ -30,7 +30,7 @@ app.use('/api/unidades', require('./modules/unidades/unidades.routes'));
 app.use('/api/incidencias', require('./modules/incidencias/incidencias.routes'));
 app.use('/api/trabajos', require('./modules/trabajos/trabajos.routes'));
 app.use('/api/gastos', require('./modules/gastos/gastos.routes'));
-// app.use('/api/mantenimiento', 
+app.use('/api/mantenimiento', require('./modules/mantenimiento/mantenimiento.routes'));
 // app.use('/api/avisos',        
 // app.use('/api/documentos',   
 
