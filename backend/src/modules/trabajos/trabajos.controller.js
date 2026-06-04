@@ -2,7 +2,6 @@ const service = require('./trabajos.service');
 
 const crear = async (req, res, next) => {
   try {
-	const io = req.app.get('io');
 	const result = await service.crear(req.body, req.usuario, io);
 	return res.status(201).json(result);
   } catch (err) { next(err); }
@@ -32,8 +31,7 @@ const actualizar = async (req, res, next) => {
 
 const asignarProveedor = async (req, res, next) => {
   try {
-	const io = req.app.get('io');
-	const result = await service.asignarProveedor(req.params.id, req.body, req.usuario, io);
+	const result = await service.asignarProveedor(req.params.id, req.body, req.usuario);
 	return res.json(result);
   } catch (err) { next(err); }
 };

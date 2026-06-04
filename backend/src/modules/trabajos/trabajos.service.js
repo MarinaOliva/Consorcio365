@@ -69,7 +69,7 @@ const validarOrigen = async (incidenciaId, instanciaMantenimientoId) => {
 /**
 * Crear trabajo (admin)
 */
-const crear = async (data, usuario, io) => {
+const crear = async (data, usuario) => {
   const {
 	incidenciaId,
 	instanciaMantenimientoId,
@@ -129,16 +129,6 @@ const crear = async (data, usuario, io) => {
   if (origen.instancia && origen.instancia.estado === ESTADOS_INSTANCIA.PROGRAMADA) {
 	origen.instancia.estado = ESTADOS_INSTANCIA.EN_CURSO;
 	await origen.instancia.save();
-  }
-
-  // Notificar al proveedor si se le asignó desde la creación
-  if (io && proveedorId) {
-	io.to(`user:${proveedorId}`).emit('trabajo-asignado', {
-  	trabajoId: trabajo._id,
-  	descripcion: trabajo.descripcion,
-  	monto: trabajo.monto,
-  	fecha: trabajo.createdAt
-	});
   }
 
   return {
@@ -236,7 +226,7 @@ const actualizar = async (id, data, usuario) => {
 /**
 * Asignar proveedor (solo admin)
 */
-const asignarProveedor = async (id, data, usuario, io) => {
+const asignarProveedor = async (id, data, usuario) => {
   const { proveedorId, monto } = data;
 
   if (!proveedorId) throw makeError(400, 'proveedorId es requerido');
@@ -283,16 +273,6 @@ const asignarProveedor = async (id, data, usuario, io) => {
   }
 
   await trabajo.save();
-
-  // Notificar al proveedor asignado
-  if (io) {
-	io.to(`user:${proveedorId}`).emit('trabajo-asignado', {
-  	trabajoId: trabajo._id,
-  	descripcion: trabajo.descripcion,
-  	monto: trabajo.monto,
-  	fecha: new Date()
-	});
-  }
 
   return { success: true, trabajo };
 };
@@ -466,8 +446,13 @@ const subirEvidencias = async (id, files, usuario) => {
 
   // Subir cada archivo a Cloudinary
   const urls = await Promise.all(
-	files.map((file) => subirACloudinary(file.buffer, 'consorcio365/trabajos'))
-  );
+	files.map((file) => subirACloudinary(
+		file.buffer, 
+		'consorcio365/trabajos', 
+		file.mimetype,
+		file.originalname
+  ))
+);
 
   trabajo.evidencias.push(...urls.map((u) => u.url));
   await trabajo.save();

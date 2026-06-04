@@ -18,16 +18,32 @@ const upload = multer({
 });
 
 // Sube el buffer a Cloudinary y devuelve { url, public_id }
-const subirACloudinary = (fileBuffer, folder = 'consorcio365') => {
+const subirACloudinary = (fileBuffer, folder = 'consorcio365', mimetype = '', originalName = '') => {
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve({ url: result.secure_url, public_id: result.public_id });
-      }
-    );
-    stream.end(fileBuffer);
+	const esPdf = mimetype === 'application/pdf';
+	const resource_type = esPdf ? 'raw' : 'auto';
+
+	// Para PDFs
+	const options = {
+  	folder,
+  	resource_type
+	};
+
+	if (esPdf) {
+  	const base = (originalName || `archivo-${Date.now()}`)
+    	.replace(/\.[^/.]+$/, '')    	
+    	.replace(/[^a-zA-Z0-9-_]/g, '_'); 
+  	options.public_id = `${base}-${Date.now()}.pdf`;
+	}
+
+	const stream = cloudinary.uploader.upload_stream(
+  	options,
+  	(error, result) => {
+    	if (error) reject(error);
+    	else resolve({ url: result.secure_url, public_id: result.public_id });
+  	}
+	);
+	stream.end(fileBuffer);
   });
 };
 
