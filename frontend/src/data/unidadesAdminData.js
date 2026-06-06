@@ -12,7 +12,7 @@ export const unidadesAdminMock = [
       {
         id: 1,
         nombre: "María González",
-        rol: "Ocupante",
+        rol: "Inquilino",
         desde: "01/03/2020",
         hasta: "Presente",
       },
@@ -48,7 +48,7 @@ export const unidadesAdminMock = [
       {
         id: 1,
         ocupante: "María González",
-        rol: "Inq",
+        rol: "Inquilino",
         desde: "01/03/2024",
         hasta: "--",
         estado: "Vigente",
@@ -64,7 +64,7 @@ export const unidadesAdminMock = [
       {
         id: 3,
         ocupante: "Laura Gómez",
-        rol: "Inq",
+        rol: "Inquilino",
         desde: "10/01/2019",
         hasta: "14/06/2021",
         estado: "Finalizado",
