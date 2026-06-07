@@ -11,7 +11,7 @@ const documentoSchema = new mongoose.Schema({
   url:    { type: String, required: true },
   visibilidad: {
     type: String,
-    enum: ['todos', 'solo_propietarios', 'solo_admin'],
+    enum: ['todos', 'solo_ocupantes', 'solo_admin'],
     default: 'todos'
   },
   categoria: {

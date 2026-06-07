@@ -32,7 +32,7 @@ app.use('/api/trabajos', require('./modules/trabajos/trabajos.routes'));
 app.use('/api/gastos', require('./modules/gastos/gastos.routes'));
 app.use('/api/mantenimiento', require('./modules/mantenimiento/mantenimiento.routes'));
 app.use('/api/avisos', require('./modules/avisos/avisos.routes'));
-// app.use('/api/documentos',   
+app.use('/api/documentos', require('./modules/documentos/documentos.routes'));
 
 // --- Manejo de errores ---
 app.use(errorHandler);
