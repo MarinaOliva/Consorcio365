@@ -1,5 +1,3 @@
-// src/components/dashboard/SectionCard.jsx
-
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 
