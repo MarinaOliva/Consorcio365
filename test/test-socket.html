@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Test Socket</title>
+</head>
+
+<body>
+    <h2>Escuchando "nueva-incidencia"...</h2>
+    <pre id="log"></pre>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script> const socket = io('http://localhost:5000'); const log = document.getElementById('log'); socket.on('connect', () => { log.textContent += 'Conectado\n'; socket.emit('join', { tipo: 'administrador', usuarioId: 'fake-admin' }); }); socket.on('connect_error', (err) => { log.textContent += 'Error de conexion: ' + err.message + '\n'; }); socket.on('nueva-incidencia', (data) => { log.textContent += '\nNUEVA INCIDENCIA:\n' + JSON.stringify(data, null, 2); }); </script>
+</body>
+
+</html>
