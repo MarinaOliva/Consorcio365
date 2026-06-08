@@ -12,9 +12,7 @@ const makeError = (status, message) => {
   return err;
 };
 
-/**
-* Verifica si un usuario puede ver un documento según su visibilidad.
-*/
+// Verifica si un usuario puede ver un documento según su visibilidad.
 const puedeVer = (usuario, visibilidad) => {
   if (visibilidad === 'todos') return true;
   if (visibilidad === 'solo_admin') return usuario.tipo === TIPOS_USUARIO.ADMINISTRADOR;

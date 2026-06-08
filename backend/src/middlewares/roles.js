@@ -6,7 +6,7 @@ const roles = (...tiposPermitidos) => {
     }
 
     if (!tiposPermitidos.includes(req.usuario.tipo)) {
-      return res.status(403).json({ message: 'No tenés permisos para esta acción' });
+      return res.status(403).json({ message: 'No tiene permisos para esta acción' });
     }
 
     next();

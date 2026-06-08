@@ -9,9 +9,7 @@ const makeError = (status, message) => {
   return err;
 };
 
-/**
-* Listar gastos con filtros
-*/
+// Listar gastos con filtros
 const listar = async (query) => {
   const { edificioId, tipo, desde, hasta } = query;
 

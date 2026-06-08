@@ -14,7 +14,8 @@ const normalizarEmail = (email) => (email || '').toLowerCase().trim();
 const validarEstado = (estado) => Object.values(ESTADOS_USUARIO).includes(estado);
 const validarTipo   = (tipo) => Object.values(TIPOS_USUARIO).includes(tipo);
 
-// Validaciones de creación y actualización se hacen en el servicio para asegurar coherencia por rol, ya que el modelo es compartido y no todos los campos son obligatorios para todos los tipos de usuario.
+// Validaciones de creación y actualización se hacen en el servicio para asegurar coherencia por rol
+// El modelo es compartido y no todos los campos son obligatorios para todos los tipos de usuario.
 const validarCrear = (data) => {
   const {
     nombre, apellido, email, passwordTemporal, tipo,

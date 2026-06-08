@@ -84,15 +84,15 @@ const actualizar = async (id, data) => {
 
 	// Reglas de coherencia
 	if (unidad.estado === ESTADOS_UNIDAD.VACIA && hayOcupantes) {
-  	throw makeError(400, 'No se puede marcar la unidad como VACIA si tiene ocupantes actuales. Desvinculá al ocupante primero.');
+  	throw makeError(400, 'No se puede marcar la unidad como VACIA si tiene ocupantes actuales. Desvincule al ocupante primero.');
 	}
 
 	if (unidad.estado === ESTADOS_UNIDAD.OCUPADA && !hayOcupantes) {
-  	throw makeError(400, 'No se puede marcar la unidad como OCUPADA si no tiene ocupantes actuales. Vinculá un ocupante primero.');
+  	throw makeError(400, 'No se puede marcar la unidad como OCUPADA si no tiene ocupantes actuales. Vincule un ocupante primero.');
 	}
 
 	if (unidad.estado === ESTADOS_UNIDAD.EN_REFACCION && hayOcupantes) {
-  	throw makeError(400, 'No se puede marcar la unidad EN_REFACCION si tiene ocupantes actuales. Desvinculá al ocupante primero.');
+  	throw makeError(400, 'No se puede marcar la unidad EN_REFACCION si tiene ocupantes actuales. Desvincule al ocupante primero.');
 	}
   }
 

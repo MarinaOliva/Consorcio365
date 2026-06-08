@@ -20,7 +20,7 @@ const validarPassword = (password) => {
 // Para no filtrar si un mail existe o no (seguridad)
 const respuestaGenericaRecuperacion = {
   success: true,
-  message: 'Si el email existe, vas a recibir instrucciones para recuperar la contraseña.'
+  message: 'Si el email existe, recibirá instrucciones para recuperar la contraseña.'
 };
 
 const login = async ({ email, password }) => {
@@ -101,8 +101,8 @@ const recuperar = async ({ email }) => {
   const frontend = process.env.FRONTEND_URL || 'http://localhost:5173';
   const linkReset = `${frontend}/reset-password?token=${tokenPlano}`;
 
-  console.log('Token de reset:', tokenPlano); // Para pruebas, eliminar en producción
-  console.log('Link de reset:', linkReset);   // Para pruebas, eliminar en producción
+  console.log('Token de reset:', tokenPlano); // Para pruebas
+  console.log('Link de reset:', linkReset);   // Para pruebas
 
   const subject = 'Recuperación de contraseña - Consorcio365';
   const html = `

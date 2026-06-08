@@ -1,6 +1,8 @@
 const Incidencia = require('../../models/Incidencia');
 const Edificio = require('../../models/Edificio');
+const Trabajo = require('../../models/Trabajo');
 const cambiarEstadoHelper = require('../../utils/cambiarEstado');
+const { subirACloudinary } = require('../../utils/upload');
 const { ESTADOS_INCIDENCIA, TIPOS_USUARIO } = require('../../constants/estados');
 
 const CATEGORIAS_VALIDAS = [
@@ -10,16 +12,14 @@ const CATEGORIAS_VALIDAS = [
 
 const PRIORIDADES_VALIDAS = ['alta', 'media', 'baja'];
 
-/**
-* Transiciones de estado permitidas
-*/
+// Transiciones de estado permitidas
 const TRANSICIONES_VALIDAS = {
-  ABIERTA: 	['EN_PROGRESO', 'RECHAZADA', 'CANCELADA'],
+  ABIERTA: ['EN_PROGRESO', 'RECHAZADA', 'CANCELADA'],
   EN_PROGRESO: ['RESUELTA', 'CANCELADA'],
-  RESUELTA:	['CERRADA', 'EN_PROGRESO'],  // se puede reabrir
-  CERRADA: 	[],
-  RECHAZADA:   [],
-  CANCELADA:   []
+  RESUELTA: ['CERRADA', 'EN_PROGRESO'],
+  CERRADA: [],
+  RECHAZADA: [],
+  CANCELADA: []
 };
 
 const makeError = (status, message) => {
@@ -28,10 +28,7 @@ const makeError = (status, message) => {
   return err;
 };
 
-/**
-* Crear incidencia (solo ocupantes)
-* Se crea como ABIERTA.
-*/
+// Crear incidencia (solo ocupantes) - se crea abierta
 const crear = async (data, usuario, io) => {
   const { edificioId, espacio, titulo, descripcion, categoria, prioridad } = data;
 
@@ -84,13 +81,7 @@ const crear = async (data, usuario, io) => {
   };
 };
 
-
-/**
-* Listar incidencias
-* - Admin: ve todas
-* - Ocupante: solo las suyas
-* - Proveedor: ve todas (-- CAMBIAR DESPUES)
-*/
+// Listar Incidencias con filtros y permisos
 const listar = async (query, usuario) => {
   const { estado, categoria, prioridad, edificioId } = query;
 
@@ -102,6 +93,17 @@ const listar = async (query, usuario) => {
 
   if (usuario.tipo === TIPOS_USUARIO.OCUPANTE) {
 	filtro.ocupanteId = usuario._id;
+  }
+
+  if (usuario.tipo === TIPOS_USUARIO.PROVEEDOR) {
+	// Buscar las incidencias con trabajos asignados a este proveedor
+	const trabajosDelProveedor = await Trabajo.find({
+  	proveedorId: usuario._id,
+  	incidenciaId: { $ne: null }
+	}).select('incidenciaId');
+
+	const idsIncidencias = trabajosDelProveedor.map((t) => t.incidenciaId);
+	filtro._id = { $in: idsIncidencias };
   }
 
   const incidencias = await Incidencia.find(filtro)
@@ -126,27 +128,37 @@ const obtener = async (id, usuario) => {
 	usuario.tipo === TIPOS_USUARIO.OCUPANTE &&
 	incidencia.ocupanteId._id.toString() !== usuario._id.toString()
   ) {
-	throw makeError(403, 'No tenés permisos para ver esta incidencia');
+	throw makeError(403, 'No tiene permisos para ver esta incidencia');
+  }
+
+  // Proveedor solo ve incidencias con trabajos asignados a él
+  if (usuario.tipo === TIPOS_USUARIO.PROVEEDOR) {
+	const tieneTrabajo = await Trabajo.findOne({
+  	incidenciaId: incidencia._id,
+  	proveedorId: usuario._id
+	});
+
+	if (!tieneTrabajo) {
+  	throw makeError(403, 'No tiene permisos para ver esta incidencia');
+	}
   }
 
   return { success: true, incidencia };
 };
 
-/**
-* Editar datos básicos
-* - Admin: puede editar todo
-* - Ocupante: solo las suyas y solo si están ABIERTAS
-*/
+// Editar datos básicos
+// - Admin: puede editar todo
+// - Ocupante: solo las suyas y solo si están ABIERTAS
 const actualizar = async (id, data, usuario) => {
   const incidencia = await Incidencia.findById(id);
   if (!incidencia) throw makeError(404, 'Incidencia no encontrada');
 
   if (usuario.tipo === TIPOS_USUARIO.OCUPANTE) {
 	if (incidencia.ocupanteId.toString() !== usuario._id.toString()) {
-  	throw makeError(403, 'No tenés permisos para editar esta incidencia');
+  	throw makeError(403, 'No tiene permisos para editar esta incidencia');
 	}
 	if (incidencia.estado !== ESTADOS_INCIDENCIA.ABIERTA) {
-  	throw makeError(400, 'Solo podés editar incidencias ABIERTAS');
+  	throw makeError(400, 'Solo se pueden editar incidencias ABIERTAS');
 	}
   }
 
@@ -167,10 +179,7 @@ const actualizar = async (id, data, usuario) => {
   return { success: true, incidencia };
 };
 
-/**
-* Cambiar estado (solo admin).
-* Valida transición y guarda en historialEstados[]
-*/
+// Cambiar estado (solo admin).
 const cambiarEstado = async (id, data, usuario) => {
   const { estadoNuevo, observacion } = data;
 
@@ -199,11 +208,10 @@ const cambiarEstado = async (id, data, usuario) => {
   return { success: true, incidencia };
 };
 
-/**
-* Agregar comentario
-* - Admin: en cualquier incidencia
-* - Ocupante: solo en las suyas
-*/
+// Agregar comentario
+// - Admin: en cualquier incidencia
+// - Ocupante: solo en las suyas
+
 const agregarComentario = async (id, data, usuario) => {
   const { texto } = data;
 
@@ -218,7 +226,7 @@ const agregarComentario = async (id, data, usuario) => {
 	usuario.tipo === TIPOS_USUARIO.OCUPANTE &&
 	incidencia.ocupanteId.toString() !== usuario._id.toString()
   ) {
-	throw makeError(403, 'No tenés permisos para comentar esta incidencia');
+	throw makeError(403, 'No tiene permisos para comentar esta incidencia');
   }
 
   incidencia.comentarios.push({
@@ -231,10 +239,8 @@ const agregarComentario = async (id, data, usuario) => {
   return { success: true, incidencia };
 };
 
-/**
-* Eliminar (soft delete: pasa a CANCELADA, queda en historial)
-* Solo admin
-*/
+// Eliminar (soft delete: pasa a CANCELADA, queda en historial)
+// Solo admin
 const eliminar = async (id, usuario) => {
   const incidencia = await Incidencia.findById(id);
   if (!incidencia) throw makeError(404, 'Incidencia no encontrada');
@@ -257,7 +263,7 @@ const eliminar = async (id, usuario) => {
   return { success: true, message: 'Incidencia cancelada' };
 };
 
-const { subirACloudinary } = require('../../utils/upload');
+//Subir fotos a una incidencia
 
 const subirFotos = async (id, files, usuario) => {
   if (!files || files.length === 0) {
@@ -267,12 +273,11 @@ const subirFotos = async (id, files, usuario) => {
   const incidencia = await Incidencia.findById(id);
   if (!incidencia) throw makeError(404, 'Incidencia no encontrada');
 
-  // Permisos: admin o el ocupante dueño
   if (
 	usuario.tipo === TIPOS_USUARIO.OCUPANTE &&
 	incidencia.ocupanteId.toString() !== usuario._id.toString()
   ) {
-	throw makeError(403, 'No tenés permisos para subir fotos a esta incidencia');
+	throw makeError(403, 'No tiene permisos para subir fotos a esta incidencia');
   }
 
   // No subir fotos a incidencias ya cerradas/canceladas/rechazadas
@@ -286,7 +291,12 @@ const subirFotos = async (id, files, usuario) => {
 
   // Subir cada archivo a Cloudinary
   const urls = await Promise.all(
-	files.map((file) => subirACloudinary(file.buffer, 'consorcio365/incidencias'))
+	files.map((file) => subirACloudinary(
+  	file.buffer,
+  	'consorcio365/incidencias',
+  	file.mimetype,
+  	file.originalname
+	))
   );
 
   // Guardamos solo las URLs

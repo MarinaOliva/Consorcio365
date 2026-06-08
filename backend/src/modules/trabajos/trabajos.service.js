@@ -14,9 +14,7 @@ const {
   TIPOS_GASTO
 } = require('../../constants/estados');
 
-/**
-* Transiciones de estado del Trabajo
-*/
+// Transiciones de estado del Trabajo
 const TRANSICIONES_VALIDAS = {
   CREADO:   	['ASIGNADO', 'CANCELADO'],
   ASIGNADO: 	['EN_EJECUCION', 'CANCELADO'],
@@ -32,9 +30,7 @@ const makeError = (status, message) => {
   return err;
 };
 
-/**
-* Validar que el origen del trabajo sea correcto (incidencia o instancia, no ambos)
-*/
+// Validar que el origen del trabajo sea correcto (incidencia o instancia, no ambos)
 const validarOrigen = async (incidenciaId, instanciaMantenimientoId) => {
   const tieneInc = !!incidenciaId;
   const tieneInst = !!instanciaMantenimientoId;
@@ -66,9 +62,8 @@ const validarOrigen = async (incidenciaId, instanciaMantenimientoId) => {
   }
 };
 
-/**
-* Crear trabajo (admin)
-*/
+// Crear trabajo (admin)
+
 const crear = async (data, usuario) => {
   const {
 	incidenciaId,
@@ -139,9 +134,7 @@ const crear = async (data, usuario) => {
 };
 
 
-/**
-* Listar trabajos (acorde al usuario)
-*/
+// Listar trabajos (acorde al usuario)
 const listar = async (query, usuario) => {
   const { estado, incidenciaId, instanciaMantenimientoId, proveedorId } = query;
 
@@ -182,7 +175,7 @@ const obtener = async (id, usuario) => {
   // Permisos
   if (usuario.tipo === TIPOS_USUARIO.PROVEEDOR) {
 	if (!trabajo.proveedorId || trabajo.proveedorId._id.toString() !== usuario._id.toString()) {
-  	throw makeError(403, 'No tenés permisos para ver este trabajo');
+  	throw makeError(403, 'No tiene permisos para ver este trabajo');
 	}
   }
 
@@ -191,16 +184,15 @@ const obtener = async (id, usuario) => {
   	!trabajo.incidenciaId ||
   	trabajo.incidenciaId.ocupanteId.toString() !== usuario._id.toString()
 	) {
-  	throw makeError(403, 'No tenés permisos para ver este trabajo');
+  	throw makeError(403, 'No tiene permisos para ver este trabajo');
 	}
   }
 
   return { success: true, trabajo };
 };
 
-/**
-* Editar datos básicos (solo admin)
-*/
+// Editar datos básicos (solo admin)
+
 const actualizar = async (id, data, usuario) => {
   const trabajo = await Trabajo.findById(id);
   if (!trabajo) throw makeError(404, 'Trabajo no encontrado');
@@ -223,9 +215,8 @@ const actualizar = async (id, data, usuario) => {
   return { success: true, trabajo };
 };
 
-/**
-* Asignar proveedor (solo admin)
-*/
+// Asignar proveedor (solo admin)
+
 const asignarProveedor = async (id, data, usuario) => {
   const { proveedorId, monto } = data;
 
@@ -279,9 +270,8 @@ const asignarProveedor = async (id, data, usuario) => {
 
 
 
-/**
-* Cambiar estado
-*/
+// Cambiar estado
+
 const cambiarEstado = async (id, data, usuario) => {
   const { estadoNuevo, observacion } = data;
 
@@ -295,12 +285,12 @@ const cambiarEstado = async (id, data, usuario) => {
 
   // Permisos por rol
   if (usuario.tipo === TIPOS_USUARIO.OCUPANTE) {
-	throw makeError(403, 'No tenés permisos para cambiar el estado de un trabajo');
+	throw makeError(403, 'No tiene permisos para cambiar el estado de un trabajo');
   }
 
   if (usuario.tipo === TIPOS_USUARIO.PROVEEDOR) {
 	if (!trabajo.proveedorId || trabajo.proveedorId.toString() !== usuario._id.toString()) {
-  	throw makeError(403, 'No tenés permisos sobre este trabajo');
+  	throw makeError(403, 'No tiene permisos sobre este trabajo');
 	}
 	const permitidoProveedor = {
   	ASIGNADO: 	['EN_EJECUCION'],
@@ -310,7 +300,7 @@ const cambiarEstado = async (id, data, usuario) => {
 	if (!permitidos.includes(estadoNuevo)) {
   	throw makeError(
     	400,
-    	`Como proveedor solo podés hacer las transiciones: ${Object.entries(permitidoProveedor).map(([k, v]) => `${k} → ${v.join('/')}`).join(', ')}`
+    	`Como proveedor solo puede hacer las transiciones: ${Object.entries(permitidoProveedor).map(([k, v]) => `${k} → ${v.join('/')}`).join(', ')}`
   	);
 	}
   }
@@ -327,7 +317,7 @@ const cambiarEstado = async (id, data, usuario) => {
   cambiarEstadoHelper(trabajo, estadoNuevo, usuario._id, observacion || '');
   await trabajo.save();
 
-  // ===== Side effects al CERRAR =====
+  // Side effects al CERRAR 
   if (estadoNuevo === ESTADOS_TRABAJO.CERRADO) {
 	await procesarCierreTrabajo(trabajo, usuario);
   }
@@ -397,9 +387,8 @@ const procesarCierreTrabajo = async (trabajo, usuario) => {
   }
 };
 
-/**
-* Eliminar (soft delete: CANCELADO)
-*/
+// Eliminar (soft delete: CANCELADO)
+
 const eliminar = async (id, usuario) => {
   const trabajo = await Trabajo.findById(id);
   if (!trabajo) throw makeError(404, 'Trabajo no encontrado');
@@ -429,14 +418,14 @@ const subirEvidencias = async (id, files, usuario) => {
 
   // Permisos: admin o el proveedor asignado
   if (usuario.tipo === TIPOS_USUARIO.OCUPANTE) {
-	throw makeError(403, 'No tenés permisos para subir evidencias');
+	throw makeError(403, 'No tiene permisos para subir evidencias');
   }
 
   if (
 	usuario.tipo === TIPOS_USUARIO.PROVEEDOR &&
 	(!trabajo.proveedorId || trabajo.proveedorId.toString() !== usuario._id.toString())
   ) {
-	throw makeError(403, 'No tenés permisos sobre este trabajo');
+	throw makeError(403, 'No tiene permisos sobre este trabajo');
   }
 
   // No subir evidencias a trabajos cerrados/cancelados
