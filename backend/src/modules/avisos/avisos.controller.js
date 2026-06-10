@@ -1,4 +1,11 @@
-const service = require('./unidades.service');
+const service = require('./avisos.service');
+
+const crear = async (req, res, next) => {
+  try {
+	const result = await service.crear(req.body, req.usuario);
+	return res.status(201).json(result);
+  } catch (err) { next(err); }
+};
 
 const listar = async (req, res, next) => {
   try {
@@ -21,28 +28,18 @@ const actualizar = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-const vincularOcupante = async (req, res, next) => {
+const eliminar = async (req, res, next) => {
   try {
-	const result = await service.vincularOcupante(req.params.id, req.body);
-	return res.json(result);
-  } catch (err) { next(err); }
-};
-
-const desvincularOcupante = async (req, res, next) => {
-  try {
-	const result = await service.desvincularOcupante(
-  	req.params.id,
-  	req.params.relacionId
-	);
+	const result = await service.eliminar(req.params.id);
 	return res.json(result);
   } catch (err) { next(err); }
 };
 
 module.exports = {
+  crear,
   listar,
   obtener,
   actualizar,
-  vincularOcupante,
-  desvincularOcupante
+  eliminar
 };
 

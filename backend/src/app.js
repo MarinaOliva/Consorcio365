@@ -1,19 +1,40 @@
-const express = require('express');
-const cors    = require('cors');
+const express      = require('express');
+const cors         = require('cors');
+const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 
-app.use(cors());
+// --- Middlewares globales ---
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
+
 app.use(express.json());
 
-// Ruta de prueba para verificar que el servidor responde
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true, mensaje: 'Servidor funcionando' });
+// --- Health check ---
+app.get('/api/health', (_req, res) => {
+  res.json({
+    ok: true,
+    status: 'OK',
+    mensaje: 'Servidor funcionando',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Acá irán las rutas de cada módulo más adelante
-// app.use('/api/auth',      require('./modules/auth/auth.routes'));
-// app.use('/api/usuarios',  require('./modules/usuarios/usuarios.routes'));
-// etc.
+// --- Rutas ---
+app.use('/api/auth', require ('./modules/auth/auth.routes') );         
+app.use('/api/usuarios', require('./modules/usuarios/usuarios.routes'));     
+app.use('/api/edificios', require('./modules/edificios/edificios.routes'));    
+app.use('/api/unidades', require('./modules/unidades/unidades.routes'));
+app.use('/api/incidencias', require('./modules/incidencias/incidencias.routes'));
+app.use('/api/trabajos', require('./modules/trabajos/trabajos.routes'));
+app.use('/api/gastos', require('./modules/gastos/gastos.routes'));
+app.use('/api/mantenimiento', require('./modules/mantenimiento/mantenimiento.routes'));
+app.use('/api/avisos', require('./modules/avisos/avisos.routes'));
+app.use('/api/documentos', require('./modules/documentos/documentos.routes'));
+
+// --- Manejo de errores ---
+app.use(errorHandler);
 
 module.exports = app;
