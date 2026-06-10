@@ -22,8 +22,8 @@ function CampoTexto({
         onChange={(e) => onChange?.(e.target.value)}
         placeholder={placeholder}
         className="
-          w-full rounded-lg border border-slate-300 bg-white
-          px-4 py-3 text-sm text-slate-800 shadow-sm
+          h-9 w-full rounded-lg border border-slate-300 bg-white
+          px-3 text-sm text-slate-800 shadow-sm
           outline-none transition
           placeholder:text-textMuted
           focus:border-primary focus:ring-2 focus:ring-purple-900/40
@@ -68,8 +68,8 @@ function CampoSelect({ label, value, onChange, options = [], placeholder }) {
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           className="
-            w-full appearance-none rounded-lg border border-slate-300 bg-white
-            px-4 py-3 pr-11 text-sm text-slate-800 shadow-sm
+            h-9 w-full appearance-none rounded-lg border border-slate-300 bg-white
+            px-3 text-sm text-slate-800 shadow-sm
             outline-none transition
             focus:border-primary focus:ring-2 focus:ring-purple-900/40
           "
@@ -97,6 +97,7 @@ function CrearTrabajoModal({
   incidencia,
   values,
   onChange,
+  modo = "incidencia",
 }) {
   if (!isOpen) return null;
 
@@ -107,6 +108,9 @@ function CrearTrabajoModal({
   const handleCreate = () => {
     onCreate?.();
   };
+
+  const esModoIncidencia = modo === "incidencia";
+  const esModoManual = modo === "manual";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
@@ -144,68 +148,129 @@ function CrearTrabajoModal({
         </div>
 
         {/* Body */}
-        <div className="flex-1 space-y-5 overflow-y-auto px-8 py-6">
+        <div className="flex-1 space-y-1 overflow-y-auto px-8 py-6">
           {/* Información básica */}
-          <div className="rounded-xl border border-secondary/60 bg-white/70 px-4 py-4 shadow-sm">
+          <div className="mb-5 rounded-lg border border-secondary bg-white/70 px-4 py-3">
             <h3 className="mb-3 text-sm font-bold text-primary">
-              Información básica
+              Información Básica
             </h3>
 
-            <div className="grid grid-cols-1 gap-x-6 gap-y-3 text-xs sm:grid-cols-2 md:grid-cols-3">
-              <p>
-                <span className="block font-semibold uppercase text-textMuted">
-                  Incidencia ID
-                </span>
-                <span className="font-bold text-textMain">
-                  #{incidencia?.id ?? "-"}
-                </span>
-              </p>
+            {esModoIncidencia && (
+              <div className="grid grid-cols-1 gap-x-6 gap-y-2 text-xs sm:grid-cols-3">
+                <p>
+                  <span className="font-semibold text-textMuted">
+                    Incidencia ID:
+                  </span>{" "}
+                  <span className="font-bold text-textMain">
+                    #{incidencia?.id ?? "-"}
+                  </span>
+                </p>
 
-              <p>
-                <span className="block font-semibold uppercase text-textMuted">
-                  Estado
-                </span>
-                <span className="font-bold text-textMain">
-                  {incidencia?.estado ?? "Pendiente"}
-                </span>
-              </p>
+                <p>
+                  <span className="font-semibold text-textMuted">Estado:</span>{" "}
+                  <span className="font-bold text-textMain">
+                    {incidencia?.estado ?? "Pendiente"}
+                  </span>
+                </p>
 
-              <p>
-                <span className="block font-semibold uppercase text-textMuted">
-                  Categoría
-                </span>
-                <span className="font-bold text-textMain">
-                  {incidencia?.categoria ?? "-"}
-                </span>
-              </p>
+                <p>
+                  <span className="font-semibold text-textMuted">
+                    Categoría:
+                  </span>{" "}
+                  <span className="font-bold text-textMain">
+                    {incidencia?.categoria ?? "-"}
+                  </span>
+                </p>
 
-              <p>
-                <span className="block font-semibold uppercase text-textMuted">
-                  Unidad
-                </span>
-                <span className="font-bold text-textMain">
-                  {incidencia?.unidad ?? "-"}
-                </span>
-              </p>
+                <p>
+                  <span className="font-semibold text-textMuted">Unidad:</span>{" "}
+                  <span className="font-bold text-textMain">
+                    {incidencia?.unidad ?? "-"}
+                  </span>
+                </p>
 
-              <p>
-                <span className="block font-semibold uppercase text-textMuted">
-                  Piso
-                </span>
-                <span className="font-bold text-textMain">
-                  {incidencia?.piso ?? "-"}
-                </span>
-              </p>
+                <p>
+                  <span className="font-semibold text-textMuted">Piso:</span>{" "}
+                  <span className="font-bold text-textMain">
+                    {incidencia?.piso ?? "-"}
+                  </span>
+                </p>
 
-              <p>
-                <span className="block font-semibold uppercase text-textMuted">
-                  Edificio
-                </span>
-                <span className="font-bold text-textMain">
-                  {incidencia?.edificio ?? "-"}
-                </span>
-              </p>
-            </div>
+                <p>
+                  <span className="font-semibold text-textMuted">
+                    Edificio:
+                  </span>{" "}
+                  <span className="font-bold text-textMain">
+                    {incidencia?.edificio ?? "-"}
+                  </span>
+                </p>
+              </div>
+            )}
+
+            {esModoManual && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <CampoTexto
+                  value={values?.numeroIncidencia ?? ""}
+                  onChange={(valor) => actualizarCampo("numeroIncidencia", valor)}
+                  placeholder="N° de incidencia"
+                />
+
+                <CampoTexto
+                  value={values?.categoria ?? ""}
+                  onChange={(valor) => actualizarCampo("categoria", valor)}
+                  placeholder="Categoría"
+                />
+
+                <select
+                  value={values?.origen ?? "Manual"}
+                  onChange={(e) => actualizarCampo("origen", e.target.value)}
+                  className="
+                    h-9 w-full rounded-lg border border-primary bg-white
+                    px-3 text-sm text-textMain
+                    outline-none transition
+                    focus:border-primaryHover focus:ring-2 focus:ring-primary/20
+                  "
+                >
+                  <option value="Manual">Tipo</option>
+                  <option value="Incidencia">Incidencia</option>
+                  <option value="Mantenimiento">Mantenimiento</option>
+                </select>
+
+                <select
+                  value={values?.estado ?? "Asignado"}
+                  onChange={(e) => actualizarCampo("estado", e.target.value)}
+                  className="
+                    h-9 w-full rounded-lg border border-primary bg-white
+                    px-3 text-sm text-textMain
+                    outline-none transition
+                    focus:border-primaryHover focus:ring-2 focus:ring-primary/20
+                  "
+                >
+                  <option value="Asignado">Asignado</option>
+                  <option value="En progreso">En progreso</option>
+                  <option value="Finalizado">Finalizado</option>
+                  <option value="Cerrado">Cerrado</option>
+                </select>
+
+                <CampoTexto
+                  value={values?.unidad ?? ""}
+                  onChange={(valor) => actualizarCampo("unidad", valor)}
+                  placeholder="Unidad"
+                />
+
+                <CampoTexto
+                  value={values?.piso ?? ""}
+                  onChange={(valor) => actualizarCampo("piso", valor)}
+                  placeholder="Piso"
+                />
+
+                <CampoTexto
+                  value={values?.edificio ?? ""}
+                  onChange={(valor) => actualizarCampo("edificio", valor)}
+                  placeholder="Edificio"
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-5">
@@ -262,7 +327,7 @@ function CrearTrabajoModal({
 
             <div className="space-y-2">
               <p className="text-sm font-medium text-slate-700">
-                A cargo de
+                A cargo del:
               </p>
 
               <div className="flex flex-wrap gap-6">

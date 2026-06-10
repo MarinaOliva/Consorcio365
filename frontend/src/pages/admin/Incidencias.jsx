@@ -966,6 +966,7 @@ const abrirModalCrearTrabajo = () => {
           values={trabajoDraft}
           onChange={actualizarTrabajoDraft}
           incidencia={detalle}
+          modo="incidencia"
         />
 
         <SuccessModal
