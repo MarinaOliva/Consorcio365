@@ -1,3 +1,4 @@
+import { gastosData } from "../../data/gastosData";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,126 +14,29 @@ import {
 
 import ContenedorPanelPorRol from "../../components/dashboard/ContenedorPanelPorRol";
 import Button from "../../components/ui/Button";
+import CargarGastoManualModal from "../../components/admin/CargarGastoManualModal";
 
 const CLASE_CAMPO_FILTRO = `
-  w-full rounded-lg border border-border bg-white
+  w-auto rounded-lg border border-border bg-white
   px-3 py-2 text-sm text-textMain
   outline-none transition
   placeholder:text-textMuted
   focus:border-primary focus:ring-2 focus:ring-primary/20
 `;
 
-const gastosAdminMock = [
-  {
-    id: 1,
-    fecha: "15/01/2026",
-    concepto: "Pérdida de agua en baño",
-    tipo: "Reactivo",
-    proveedor: "Plomería Rápida SRL",
-    monto: 28500,
-    origen: "Incidencia #1238",
-    comprobante: "comprobante-1238.pdf",
-  },
-  {
-    id: 2,
-    fecha: "15/01/2026",
-    concepto: "Mantenimiento ascensores",
-    tipo: "Preventivo",
-    proveedor: "Ascensores Rápidos SA",
-    monto: 8850,
-    origen: "Instancia Mant #45",
-    comprobante: "comprobante-mant-45.pdf",
-  },
-  {
-    id: 3,
-    fecha: "15/01/2026",
-    concepto: "Pérdida de agua en baño",
-    tipo: "Reactivo",
-    proveedor: "Plomería Rápida SRL",
-    monto: 8500,
-    origen: "Incidencia #1238",
-    comprobante: "comprobante-1238-b.pdf",
-  },
-  {
-    id: 4,
-    fecha: "15/01/2026",
-    concepto: "Fumigación Hall entrada",
-    tipo: "Manual",
-    proveedor: "Bug Busters SRL",
-    monto: 12000,
-    origen: "Manual",
-    comprobante: "fumigacion-hall.pdf",
-  },
-  {
-    id: 5,
-    fecha: "15/01/2026",
-    concepto: "Pérdida de agua en baño",
-    tipo: "Reactivo",
-    proveedor: "Plomería Rápida SRL",
-    monto: 8500,
-    origen: "Incidencia #1238",
-    comprobante: "comprobante-1238-c.pdf",
-  },
-  {
-    id: 6,
-    fecha: "18/01/2026",
-    concepto: "Revisión tablero eléctrico",
-    tipo: "Reactivo",
-    proveedor: "ElectroServicios SA",
-    monto: 12900,
-    origen: "Incidencia #1241",
-    comprobante: "revision-tablero.pdf",
-  },
-  {
-    id: 7,
-    fecha: "20/01/2026",
-    concepto: "Cambio de luminarias",
-    tipo: "Reactivo",
-    proveedor: "ElectroServicios SA",
-    monto: 10000,
-    origen: "Incidencia #1244",
-    comprobante: "luminarias.pdf",
-  },
-  {
-    id: 8,
-    fecha: "21/01/2026",
-    concepto: "Limpieza de tanques",
-    tipo: "Preventivo",
-    proveedor: "Servicios Sanitarios SA",
-    monto: 12500,
-    origen: "Instancia Mant #46",
-    comprobante: "limpieza-tanques.pdf",
-  },
-  {
-    id: 9,
-    fecha: "22/01/2026",
-    concepto: "Control matafuegos",
-    tipo: "Preventivo",
-    proveedor: "Seguridad Integral SRL",
-    monto: 15530,
-    origen: "Instancia Mant #47",
-    comprobante: "matafuegos.pdf",
-  },
-  {
-    id: 10,
-    fecha: "24/01/2026",
-    concepto: "Jardinería espacios comunes",
-    tipo: "Manual",
-    proveedor: "Verde Urbano",
-    monto: 13000,
-    origen: "Manual",
-    comprobante: "jardineria.pdf",
-  },
-  {
-    id: 11,
-    fecha: "25/01/2026",
-    concepto: "Service portón eléctrico",
-    tipo: "Preventivo",
-    proveedor: "Portones Norte",
-    monto: 15500,
-    origen: "Instancia Mant #48",
-    comprobante: "porton-electrico.pdf",
-  },
+const MESES_DEL_ANIO = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
 ];
 
 function formatearMonto(valor) {
@@ -144,10 +48,10 @@ function formatearMonto(valor) {
 }
 
 function normalizarTexto(valor) {
- return String(valor ?? "").toLowerCase().trim();
+  return String(valor ?? "").toLowerCase().trim();
 }
 
-function obtenerMesAnio(fecha) {
+function obtenerNombreMes(fecha) {
   if (!fecha) return "";
 
   const [dia, mes, anio] = fecha.split("/").map(Number);
@@ -156,10 +60,11 @@ function obtenerMesAnio(fecha) {
 
   const fechaDate = new Date(anio, mes - 1, dia);
 
-  return fechaDate.toLocaleDateString("es-AR", {
+  const nombreMes = fechaDate.toLocaleDateString("es-AR", {
     month: "long",
-    year: "numeric",
   });
+
+  return nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
 }
 
 function obtenerPorcentaje(valor, total) {
@@ -191,11 +96,11 @@ function GastoTipoBadge({ tipo }) {
 }
 
 function ResumenGastoCard({
-   titulo,
-   valor,
-   descripcion,
-   icon: Icon,
-   iconClassName = "text-primary",
+  titulo,
+  valor,
+  descripcion,
+  icon: Icon,
+  iconClassName = "text-primary",
 }) {
   return (
     <div
@@ -203,7 +108,7 @@ function ResumenGastoCard({
         rounded-xl border border-secondary/70 bg-white p-4
         shadow-[3px_5px_8px_rgba(7,40,48,0.25)]
       "
-  >
+    >
       <div className="flex items-start justify-between gap-3">
         <p className="text-xs font-bold text-textMuted">{titulo}</p>
 
@@ -226,46 +131,39 @@ function ResumenGastoCard({
 function GastosAdmin() {
   const navigate = useNavigate();
 
+  const [gastos, setGastos] = useState(gastosData);
   const [tipoFiltro, setTipoFiltro] = useState("Todos");
-  const [mesFiltro, setMesFiltro] = useState("Enero 2026");
-
-  const mesesDisponibles = useMemo(() => {
-    const meses = gastosAdminMock
-      .map((gasto) => obtenerMesAnio(gasto.fecha))
-      .filter(Boolean)
-      .map((mes) => mes.charAt(0).toUpperCase() + mes.slice(1));
-
-    return [...new Set(meses)];
-  }, []);
+  const [mesFiltro, setMesFiltro] = useState("Todos");
+  const [isCargarGastoManualOpen, setIsCargarGastoManualOpen] = useState(false);
 
   const gastosFiltrados = useMemo(() => {
-    return gastosAdminMock.filter((gasto) => {
-      const coincideTipo = tipoFiltro === "Todos" || gasto.tipo === tipoFiltro;
+    return gastos.filter((gasto) => {
+      const coincideTipo =
+        tipoFiltro === "Todos" ||
+        normalizarTexto(gasto.tipo) === normalizarTexto(tipoFiltro);
 
-      const mesGasto = obtenerMesAnio(gasto.fecha);
-      const mesGastoCapitalizado =
-        mesGasto.charAt(0).toUpperCase() + mesGasto.slice(1);
+      const nombreMesGasto = obtenerNombreMes(gasto.fecha);
 
       const coincideMes =
-        mesFiltro === "Todos" || mesGastoCapitalizado === mesFiltro;
+        mesFiltro === "Todos" || nombreMesGasto === mesFiltro;
 
       return coincideTipo && coincideMes;
     });
-  }, [tipoFiltro, mesFiltro]);
+  }, [gastos, tipoFiltro, mesFiltro]);
 
   const resumen = useMemo(() => {
     const total = gastosFiltrados.reduce((acc, gasto) => acc + gasto.monto, 0);
 
     const reactivos = gastosFiltrados
-      .filter((gasto) => gasto.tipo === "Reactivo")
+      .filter((gasto) => normalizarTexto(gasto.tipo) === "reactivo")
       .reduce((acc, gasto) => acc + gasto.monto, 0);
 
     const preventivos = gastosFiltrados
-      .filter((gasto) => gasto.tipo === "Preventivo")
+      .filter((gasto) => normalizarTexto(gasto.tipo) === "preventivo")
       .reduce((acc, gasto) => acc + gasto.monto, 0);
 
     const manuales = gastosFiltrados
-      .filter((gasto) => gasto.tipo === "Manual")
+      .filter((gasto) => normalizarTexto(gasto.tipo) === "manual")
       .reduce((acc, gasto) => acc + gasto.monto, 0);
 
     return {
@@ -280,7 +178,38 @@ function GastosAdmin() {
   }, [gastosFiltrados]);
 
   const handleCargarGastoManual = () => {
-    console.log("Cargar gasto manual");
+    setIsCargarGastoManualOpen(true);
+  };
+
+  const handleCerrarModalCargarGastoManual = () => {
+    setIsCargarGastoManualOpen(false);
+  };
+
+  const handleGuardarGastoManual = (nuevoGasto) => {
+    const hoy = new Date();
+    const fechaActual = hoy.toLocaleDateString("es-AR");
+
+    const nuevoRegistro = {
+      id:
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `${Date.now()}`,
+      fecha: fechaActual,
+      concepto: nuevoGasto.concepto,
+      tipo: "Manual",
+      proveedor: "Carga manual",
+      monto: Number(nuevoGasto.monto),
+      origen: "Manual",
+      comprobante: nuevoGasto.comprobante,
+    };
+
+    setGastos((prev) => [nuevoRegistro, ...prev]);
+    setIsCargarGastoManualOpen(false);
+
+    // Si querés que siempre se vea el recién cargado sin importar filtros,
+    // descomentá estas dos líneas:
+    // setTipoFiltro("Todos");
+    // setMesFiltro("Todos");
   };
 
   return (
@@ -347,13 +276,7 @@ function GastosAdmin() {
           />
         </div>
 
-        <div
-          className="
-            inline-flex flex-col gap-3 rounded-xl border border-secondary/70
-             bg-white p-2 shadow-[3px_5px_8px_rgba(7,40,48,0.18)]
-            sm:flex-row
-          "
-        >
+        <div className="flex flex-row flex-wrap gap-3">
           <select
             value={tipoFiltro}
             onChange={(e) => setTipoFiltro(e.target.value)}
@@ -378,7 +301,7 @@ function GastosAdmin() {
             >
               <option value="Todos">Todos los meses</option>
 
-              {mesesDisponibles.map((mes) => (
+              {MESES_DEL_ANIO.map((mes) => (
                 <option key={mes} value={mes}>
                   {mes}
                 </option>
@@ -389,20 +312,20 @@ function GastosAdmin() {
 
         <div
           className="
-              rounded-xl border border-secondary/70 bg-white p-4
-              shadow-[3px_5px_8px_rgba(7,40,48,0.25)]
-            "
+            rounded-xl border border-secondary/70 bg-white p-4
+            shadow-[3px_5px_8px_rgba(7,40,48,0.25)]
+          "
         >
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[850px] table-fixed border-collapse text-xs">
+            <table className="w-full min-w-[999px] table-auto border-collapse text-xs">
               <colgroup>
-                <col className="w-[11%]" />
+                <col className="w-[10%]" />
                 <col className="w-[24%]" />
-                <col className="w-[14%]" />
-                <col className="w-[20%]" />
-                <col className="w-[12%]" />
-                <col className="w-[14%]" />
-                <col className="w-[5%]" />
+                <col className="w-[13%]" />
+                <col className="w-[16%]" />
+                <col className="w-[11%]" />
+                <col className="w-[10%]" />
+                <col className="w-[16%]" />
               </colgroup>
 
               <thead>
@@ -412,10 +335,10 @@ function GastosAdmin() {
                   <th className="px-3 py-3 font-bold">Tipo</th>
                   <th className="px-3 py-3 font-bold">Proveedor</th>
                   <th className="px-3 py-3 font-bold">Monto</th>
-                  <th className="px-3 py-3 font-bold">Origen</th>
                   <th className="px-3 py-3 text-center font-bold">
                     Ver comprobante
                   </th>
+                  <th className="px-3 py-3 text-center font-bold">Origen</th>
                 </tr>
               </thead>
 
@@ -426,7 +349,7 @@ function GastosAdmin() {
                       key={gasto.id}
                       className="
                         border-b border-border/60 last:border-b-0
-                        transition hover:bg-primarySoft/40
+                        transition hover:bg-primarySoft/20
                       "
                     >
                       <td className="px-3 py-3 font-medium text-textMain">
@@ -455,13 +378,7 @@ function GastosAdmin() {
                         </span>
                       </td>
 
-                      <td className="px-3 py-3">
-                        <span className="font-bold text-primary">
-                          {gasto.origen}
-                        </span>
-                      </td>
-
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 text-center">
                         <button
                           type="button"
                           aria-label={`Ver comprobante de ${gasto.concepto}`}
@@ -472,6 +389,12 @@ function GastosAdmin() {
                         >
                           <ReceiptText size={16} />
                         </button>
+                      </td>
+
+                      <td className="px-3 py-3 text-center">
+                        <span className="font-bold text-primary">
+                          {gasto.origen}
+                        </span>
                       </td>
                     </tr>
                   ))
@@ -499,12 +422,17 @@ function GastosAdmin() {
             "
           >
             <p className="text-xs font-medium text-primary">
-              Mostrando {gastosFiltrados.length} de {gastosAdminMock.length}{" "}
-              gastos
+              Mostrando {gastosFiltrados.length} de {gastos.length} gastos
             </p>
           </div>
         </div>
       </section>
+
+      <CargarGastoManualModal
+        isOpen={isCargarGastoManualOpen}
+        onClose={handleCerrarModalCargarGastoManual}
+        onSave={handleGuardarGastoManual}
+      />
     </ContenedorPanelPorRol>
   );
 }
