@@ -10,7 +10,10 @@ function DataTable({
         {rows.map((row, rowIndex) => (
           <div
             key={row.id || rowIndex}
-            className="rounded-lg border border-border/70 bg-white p-3 shadow-sm"
+            className="
+              rounded-lg border border-border/70 bg-white p-3 shadow-sm
+              transition-colors duration-150 hover:bg-primary/5
+            "
           >
             {columns.map((column) => (
               <div
@@ -50,7 +53,10 @@ function DataTable({
             {rows.map((row, rowIndex) => (
               <tr
                 key={row.id || rowIndex}
-                className="border-b border-border/50 last:border-b-0"
+                className="
+                  border-b border-border/50 last:border-b-0
+                  transition-colors duration-150 hover:bg-primary/5
+                "
               >
                 {columns.map((column) => (
                   <td

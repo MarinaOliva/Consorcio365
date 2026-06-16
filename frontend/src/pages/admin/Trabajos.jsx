@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   CalendarDays,
@@ -706,6 +707,9 @@ function TrabajoDetalleVista({
 }
 
 function TrabajosAdmin() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const detalleTrabajoId = searchParams.get("detalle");
+
   const [trabajos, setTrabajos] = useState(trabajosAdminMock);
 
   const [busqueda, setBusqueda] = useState("");
@@ -720,10 +724,37 @@ function TrabajosAdmin() {
   const [trabajoEditado, setTrabajoEditado] = useState(null);
   const [isCambiosGuardadosOpen, setIsCambiosGuardadosOpen] = useState(false);
 
-
-  const [trabajoSeleccionado, setTrabajoSeleccionado] = useState(null);
-
   const [trabajoDraft, setTrabajoDraft] = useState(TRABAJO_DRAFT_INICIAL);
+
+  const trabajoPorParametro = useMemo(() => {
+    if (!detalleTrabajoId) return null;
+
+    return (
+      trabajos.find((item) => String(item.id) === String(detalleTrabajoId)) ||
+      null
+    );
+  }, [detalleTrabajoId, trabajos]);
+  
+  const trabajoSeleccionado = trabajoPorParametro;
+
+  const handleVerTrabajo = (trabajo) => {
+    setTrabajoEnEdicion(null);
+    setTrabajoEditado(null);
+
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("detalle", trabajo.id);
+      return next;
+    });
+  };
+
+  const handleVolverListado = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("detalle");
+      return next;
+    });
+  };
 
   const proveedoresDisponibles = useMemo(() => {
     return [...new Set(trabajos.map((trabajo) => trabajo.proveedor))].filter(Boolean);
@@ -790,7 +821,7 @@ function TrabajosAdmin() {
   };
 
   const reiniciarTrabajoDraft = () => {
-    setTrabajoDraft({TRABAJO_DRAFT_INICIAL,});
+    setTrabajoDraft(TRABAJO_DRAFT_INICIAL);
   };
 
   const handleCerrarCrearTrabajo = () => {
@@ -838,14 +869,10 @@ function TrabajosAdmin() {
   };
 
   const handleNuevoTrabajo = () => {
-    // modal de creación de trabajo.
     setIsCrearTrabajoOpen(true);
   };
 
-  const handleVerTrabajo = (trabajo) => {
-    setTrabajoSeleccionado(trabajo);
-  };
-
+  
   if (trabajoSeleccionado) {
     return (
         <ContenedorPanelPorRol
@@ -854,7 +881,7 @@ function TrabajosAdmin() {
         >
           <TrabajoDetalleVista
               trabajo={trabajoSeleccionado}
-              onVolver={() => setTrabajoSeleccionado(null)}
+              onVolver={handleVolverListado}
           />
         </ContenedorPanelPorRol>
     );
@@ -898,14 +925,29 @@ function TrabajosAdmin() {
   };
 
   const handleEditarTrabajo = (trabajo) => {
-    setTrabajoSeleccionado(null);
     setTrabajoEnEdicion(trabajo);
     setTrabajoEditado({ ...trabajo });
+    
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("detalle");
+      return next;
+    });
+
   };
 
 
   const handleEliminarTrabajo = (trabajo) => {
     setTrabajos((prev) => prev.filter((item) => item.id !== trabajo.id));
+
+    if (String(detalleTrabajoId) === String(trabajo.id)) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("detalle");
+        return next;
+      });
+    }
+
   };
 
   
