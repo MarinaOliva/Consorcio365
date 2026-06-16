@@ -12,9 +12,10 @@ import UnidadesAdmin from "./pages/admin/Unidades";
 import IncidenciasAdmin from "./pages/admin/Incidencias";
 import TrabajosAdmin from "./pages/admin/Trabajos";
 import GastosAdmin from "./pages/admin/Gastos";
-import MantenimientoAdmin from "./pages/admin/Mantenimiento";
+import MantenimientoAdmin from "./pages/admin/mantenimiento/Mantenimiento";
 import DocumentosAdmin from "./pages/admin/Documentos";
 import AvisosAdmin from "./pages/admin/Avisos";
+import DetallePlanMantenimiento from "./pages/admin/mantenimiento/DetallePlanMantenimiento";
 
 // Ocupante
 import DashboardOcupante from "./pages/ocupante/Dashboard";
@@ -105,6 +106,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AvisosAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/mantenimiento/:id"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <DetallePlanMantenimiento />
             </ProtectedRoute>
           }
         />
