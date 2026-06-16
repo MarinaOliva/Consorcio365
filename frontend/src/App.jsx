@@ -13,9 +13,10 @@ import IncidenciasAdmin from "./pages/admin/Incidencias";
 import TrabajosAdmin from "./pages/admin/Trabajos";
 import GastosAdmin from "./pages/admin/Gastos";
 import MantenimientoAdmin from "./pages/admin/mantenimiento/Mantenimiento";
-import DocumentosAdmin from "./pages/admin/Documentos";
-import AvisosAdmin from "./pages/admin/Avisos";
 import DetallePlanMantenimiento from "./pages/admin/mantenimiento/DetallePlanMantenimiento";
+import DocumentosAdmin from "./pages/admin/documentos/Documentos";
+import AvisosAdmin from "./pages/admin/Avisos";
+
 
 // Ocupante
 import DashboardOcupante from "./pages/ocupante/Dashboard";
@@ -94,6 +95,14 @@ function App() {
           }
         />
         <Route
+          path="/admin/mantenimiento/:id"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <DetallePlanMantenimiento />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/documentos"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
@@ -109,14 +118,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/admin/mantenimiento/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <DetallePlanMantenimiento />
-            </ProtectedRoute>
-          }
-        />
+        
 
         {/* Ocupante */}
         <Route
