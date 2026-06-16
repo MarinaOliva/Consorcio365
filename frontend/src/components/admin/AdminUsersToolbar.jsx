@@ -35,10 +35,10 @@ function AdminUsersToolbar({
           onChange={(e) => setRoleFilter(e.target.value)}
           className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-textMain"
         >
-          <option value="Todos">Todos los roles</option>
-          <option value="Administrador">Administrador</option>
-          <option value="Ocupante">Ocupante</option>
-          <option value="Proveedor">Proveedor</option>
+          <option value="todos">Todos los roles</option>
+          <option value="administrador">Administrador</option>
+          <option value="ocupante">Ocupante</option>
+          <option value="proveedor">Proveedor</option>
         </select>
 
         <select
@@ -46,10 +46,10 @@ function AdminUsersToolbar({
           onChange={(e) => setStatusFilter(e.target.value)}
           className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-textMain"
         >
-          <option value="Todos">Todos los estados</option>
-          <option value="Activo">Activo</option>
-          <option value="Pendiente">Pendiente</option>
-          <option value="Inactivo">Inactivo</option>
+          <option value="todos">Todos los estados</option>
+          <option value="ACTIVO">Activo</option>
+          <option value="PENDIENTE">Pendiente</option>
+          <option value="INACTIVO">Inactivo</option>
         </select>
       </div>
 

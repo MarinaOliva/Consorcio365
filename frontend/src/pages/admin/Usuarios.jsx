@@ -13,12 +13,13 @@ import {
   getUsuarios,
   updateUsuario,
   deleteUsuario,
+  createUsuario,
 } from "../../services/usersService";
 
 function UsuariosAdmin() {
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("Todos");
-  const [statusFilter, setStatusFilter] = useState("Todos");
+  const [roleFilter, setRoleFilter] = useState("todos");
+  const [statusFilter, setStatusFilter] = useState("todos");
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,8 @@ function UsuariosAdmin() {
 
         const adapted = data.map((u) => ({
           ...u,
-          displayName: `${u.name} ${u.lastName}`.trim(),
+          id: u._id || u.id, 
+          displayName: `${u.nombre|| ""} ${u.apellido|| ""}`.trim(),
         }));
 
         setUsers(adapted);
@@ -102,23 +104,20 @@ function UsuariosAdmin() {
   };
 
   // Soft delete: pasa a INACTIVO
-  const handleDelete = async (row) => {
-    const confirmar = window.confirm(
-      `¿Desactivar a ${row.displayName || row.name}?`
-    );
-    if (!confirmar) return;
-
-    try {
-      await deleteUsuario(row.id);
-
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === row.id ? { ...u, status: "Inactivo" } : u
-        )
-      );
-
-      setSuccessMessage("Estado cambiado con éxito");
-      setIsSuccessOpen(true);
+const handleDelete = async (row) => {
+  const confirmar = window.confirm(
+	`¿Desactivar a ${row.displayName || row.nombre}?`
+  );
+  if (!confirmar) return;
+  try {
+	await deleteUsuario(row.id);
+	setUsers((prev) =>
+  	prev.map((u) =>
+    	u.id === row.id ? { ...u, estado: "INACTIVO" } : u
+  	)
+	);
+	setSuccessMessage("Usuario desactivado con éxito");
+	setIsSuccessOpen(true);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -130,20 +129,25 @@ function UsuariosAdmin() {
   };
 
   // Guardar edición (PUT al back)
-  const handleSave = async (updatedEntity) => {
-    try {
-      await updateUsuario(updatedEntity.id, updatedEntity);
+ const handleSave = async (updatedEntity) => {
+  try {
+	const payload = { ...updatedEntity };
+	delete payload.id;
+	delete payload._id;
+	delete payload.displayName;
 
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === updatedEntity.id
-            ? {
-                ...updatedEntity,
-                displayName: `${updatedEntity.name ?? ""} ${updatedEntity.lastName ?? ""}`.trim(),
-              }
-            : u
-        )
-      );
+	const result = await updateUsuario(updatedEntity.id, payload);
+	setUsers((prev) =>
+  	prev.map((u) =>
+    	u.id === updatedEntity.id
+      	? {
+          	...result,
+          	id: result._id || result.id,
+          	displayName: `${result.nombre || ""} ${result.apellido || ""}`.trim(),
+        	}
+      	: u
+  	)
+	);
 
       handleCloseModal();
       setSuccessMessage("Cambios guardados con éxito");
@@ -164,34 +168,44 @@ function UsuariosAdmin() {
     setReadOnly(false);
   };
 
- // Alta local del nuevo usuario
-  // (Más adelante esto se puede reemplazar por createUsuario() cuando exista el endpoint)
-  const handleCreateUser = (nuevoUsuario) => {
-    const usuarioNormalizado = {
-      id: Date.now(),
-      ...nuevoUsuario,
-      displayName: `${nuevoUsuario.name ?? ""} ${
-        nuevoUsuario.lastName ?? ""
-      }`.trim(),
-      status: nuevoUsuario.status || "Pendiente",
-    };
+ // Alta del nuevo usuario
+  
+ const handleCreateUser = async (nuevoUsuario) => {
+  try {
+	const payload = { ...nuevoUsuario };
+	const passwordTemporal = payload.passwordTemporal || "Temporal123!";
+	delete payload.passwordTemporal;
 
-    setUsers((prev) => [usuarioNormalizado, ...prev]);
-    setIsCreateModalOpen(false);
-    setSuccessMessage("Usuario creado con éxito");
-    setIsSuccessOpen(true);
-  };
+	const created = await createUsuario(payload, passwordTemporal);
+	const adapted = {
+  	...created,
+  	id: created._id || created.id,
+  	displayName: `${created.nombre || ""} ${created.apellido || ""}`.trim(),
+	};
+	setUsers((prev) => [adapted, ...prev]);
+	setIsCreateModalOpen(false);
+	setSuccessMessage("Usuario creado con éxito");
+	setIsSuccessOpen(true);
+  } catch (err) {
+	const msg =
+  	err?.response?.data?.message ||
+  	err?.message ||
+  	"No se pudo crear el usuario";
+	alert(msg);
+  }
+};
 
-  // Filtrado local sobre la lista
+
+  // Filtrado sobre la lista
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
       const matchesSearch =
         (u.displayName || "").toLowerCase().includes(search.toLowerCase()) ||
         (u.email || "").toLowerCase().includes(search.toLowerCase());
 
-      const matchesRole = roleFilter === "Todos" || u.role === roleFilter;
+      const matchesRole = roleFilter === "todos" || u.tipo === roleFilter;
       const matchesStatus =
-        statusFilter === "Todos" || u.status === statusFilter;
+        statusFilter === "todos" || u.estado === statusFilter;
 
       return matchesSearch && matchesRole && matchesStatus;
     });
