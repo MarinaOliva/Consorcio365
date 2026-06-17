@@ -1,5 +1,3 @@
-// src/components/ocupante/PanelGeneralOcupante.jsx
-
 import MiUnidadCard from "./MiUnidadCard";
 import OcupanteReclamosList from "./OcupanteReclamosList";
 import OcupanteAvisosList from "./OcupanteAvisosList";

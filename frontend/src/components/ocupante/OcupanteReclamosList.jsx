@@ -57,4 +57,3 @@ function OcupanteReclamosList({
 }
 
 export default OcupanteReclamosList;
-
