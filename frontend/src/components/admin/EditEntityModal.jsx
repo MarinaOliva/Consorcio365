@@ -1,11 +1,10 @@
-import { X } from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 import EditableInput from "../dashboard/fields/EditableInput";
 import SelectField from "../dashboard/fields/SelectField";
 import RadioGroup from "../dashboard/fields/RadioGroup";
-import { buildingUnitsLong } from "../../data/unitsData";
 
 /* ---------- Forms ---------- */
-function UserForm({ values, onChange, readOnly }) {
+function UserForm({ values, onChange, readOnly, unidadesDisponibles = [] }) {
   return (
 	<div className="space-y-5">
 	<EditableInput label="Nombre" value={values?.nombre ?? ""} onChange={(v) => onChange("nombre", v)} readOnly={readOnly} />
@@ -14,7 +13,35 @@ function UserForm({ values, onChange, readOnly }) {
 	<EditableInput label="N° Teléfono / Celular" value={values?.telefono ?? ""} onChange={(v) => onChange("telefono", v)} readOnly={readOnly} />
 	<SelectField label="Tipo de Documento" value={values?.tipoDoc ?? "DNI"} options={["DNI", "CUIL", "CUIT", "PASAPORTE"]} onChange={(v) => onChange("tipoDoc", v)} disabled={readOnly} />
 	<EditableInput label="N° Documento" value={values?.numDoc ?? ""} onChange={(v) => onChange("numDoc", v)} readOnly={readOnly} />
-	<SelectField label="Seleccionar Unidad" value={values?.unit ?? ""} options={buildingUnitsLong} onChange={(v) => onChange("unit", v)} disabled={readOnly} />
+
+	{/* Select de unidad con datos reales del back */}
+	<div className="space-y-2">
+  	<label className="text-sm font-medium text-slate-700">Seleccionar Unidad</label>
+  	<div className="relative">
+    	<select
+      	value={values?.unit ?? ""}
+      	onChange={(e) => onChange("unit", e.target.value)}
+      	disabled={readOnly}
+      	className="w-full appearance-none rounded-lg border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-900/40 disabled:bg-slate-50"
+    	>
+      	
+		<option value="">Sin unidad asignada</option>
+		{unidadesDisponibles.map((u) => {
+			const enRefaccion = u.estado === "EN_REFACCION";
+			return (
+				<option key={u._id} value={u._id} disabled={enRefaccion}>
+				Piso {u.piso} - Unidad {u.numero}
+				{enRefaccion ? " (en refacción)" : ""}
+				</option>
+			);
+		})}
+
+
+    	</select>
+    	<ChevronDown size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#0f5b66]" />
+  	</div>
+	</div>
+
 	<SelectField label="Rol en la Unidad" value={values?.unitRole ?? "PROPIETARIO"} options={["PROPIETARIO", "INQUILINO"]} onChange={(v) => onChange("unitRole", v)} disabled={readOnly} />
 	<RadioGroup label="Estado" name="estado" value={values?.estado ?? "ACTIVO"} options={["ACTIVO", "INACTIVO"]} onChange={(v) => onChange("estado", v)} />
 	<RadioGroup label="¿Reside en la unidad?" name="resides" value={values?.resides ?? "Si"} options={["Si", "No"]} onChange={(v) => onChange("resides", v)} />
@@ -59,7 +86,7 @@ function ProviderForm({ values, onChange, readOnly }) {
   );
 }
 
-function EditEntityModal({ isOpen, onClose, onSave, draft, setDraft, readOnly = false }) {
+function EditEntityModal({ isOpen, onClose, onSave, draft, setDraft, readOnly = false, unidadesDisponibles = [] }) {
   if (!isOpen || !draft) return null;
 
   const tipo = (draft?.tipo ?? "").trim().toLowerCase();
@@ -162,7 +189,7 @@ function EditEntityModal({ isOpen, onClose, onSave, draft, setDraft, readOnly = 
     	) : isAdmin ? (
         	<AdminForm values={valuesForRender} onChange={updateField} readOnly={readOnly} />
     	) : (
-        	<UserForm values={valuesForRender} onChange={updateField} readOnly={readOnly} />
+        	<UserForm values={valuesForRender} onChange={updateField} readOnly={readOnly} unidadesDisponibles={unidadesDisponibles} />
     	)}
     	</div>
 

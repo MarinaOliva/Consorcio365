@@ -15,6 +15,7 @@ import {
   deleteUsuario,
   createUsuario,
 } from "../../services/usersService";
+import { getUnidades, vincularOcupante, desvincularOcupante } from "../../services/unidadesService";
 
 function UsuariosAdmin() {
   const [search, setSearch] = useState("");
@@ -22,6 +23,7 @@ function UsuariosAdmin() {
   const [statusFilter, setStatusFilter] = useState("todos");
 
   const [users, setUsers] = useState([]);
+  const [unidades, setUnidades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -41,11 +43,18 @@ function UsuariosAdmin() {
   );
 
   useEffect(() => {
-    let activo = true;
+   let activo = true;
 
-    async function cargarUsuarios() {
-      try {
-        const data = await getUsuarios();
+   async function cargarUsuarios() {
+	  try {
+      const [data, unidadesData] = await Promise.all([
+        getUsuarios(),
+        getUnidades(),
+      ]);
+
+  	if (!activo) return;
+  	setUnidades(unidadesData);
+
 
         if (!activo) return;
 
@@ -79,29 +88,56 @@ function UsuariosAdmin() {
     };
   }, []);
 
+  // Busca la unidad actual del ocupante
+  const buscarRelacionActual = (ocupanteId) => {
+    for (const unidad of unidades) {
+    const relacion = unidad.unidadRelaciones?.find(
+      (rel) =>
+        rel.esOcupanteActual === true &&
+        rel.estado === "VIGENTE" &&
+        (rel.ocupanteId?._id === ocupanteId || rel.ocupanteId === ocupanteId)
+    );
+    if (relacion) {
+      return {
+        unidadId: unidad._id,
+        relacionId: relacion._id,
+        rolEnUnidad: relacion.rolEnUnidad,
+      };
+    }
+    }
+    return null;
+  };
+
   // Editar (modal en modo edición)
-  const handleEdit = (row) => {
-    const copy =
-      typeof structuredClone === "function"
-        ? structuredClone(row)
-        : JSON.parse(JSON.stringify(row));
+const handleEdit = (row) => {
+  const copy = structuredClone(row);
+  if (row.tipo === "ocupante") {
+	const relacion = buscarRelacionActual(row.id);
+	if (relacion) {
+  	copy.unit = relacion.unidadId;
+  	copy.unitRole = relacion.rolEnUnidad;
+  	copy._relacionActual = relacion;
+	}
+  }
+  setDraft(copy);
+  setReadOnly(false);
+  setIsModalOpen(true);
+};
 
-    setDraft(copy);
-    setReadOnly(false);
-    setIsModalOpen(true);
-  };
-
-  // Ver (modal en modo solo lectura)
-  const handleView = (row) => {
-    const copy =
-      typeof structuredClone === "function"
-        ? structuredClone(row)
-        : JSON.parse(JSON.stringify(row));
-
-    setDraft(copy);
-    setReadOnly(true);
-    setIsModalOpen(true);
-  };
+// Ver (modal en modo solo lectura)
+const handleView = (row) => {
+  const copy = structuredClone(row);
+  if (row.tipo === "ocupante") {
+	const relacion = buscarRelacionActual(row.id);
+	if (relacion) {
+  	copy.unit = relacion.unidadId;
+  	copy.unitRole = relacion.rolEnUnidad;
+	}
+  }
+  setDraft(copy);
+  setReadOnly(true);
+  setIsModalOpen(true);
+};
 
   // Soft delete: pasa a INACTIVO
 const handleDelete = async (row) => {
@@ -129,14 +165,72 @@ const handleDelete = async (row) => {
   };
 
   // Guardar edición (PUT al back)
- const handleSave = async (updatedEntity) => {
+const handleSave = async (updatedEntity) => {
   try {
 	const payload = { ...updatedEntity };
+
+	const nuevaUnidad = payload.unit;
+	const nuevoRol = payload.unitRole || "PROPIETARIO";  // default si no se eligió
+	const relacionActual = payload._relacionActual;
+
+	console.log("[handleSave] nuevaUnidad:", nuevaUnidad);
+	console.log("[handleSave] nuevoRol:", nuevoRol);
+	console.log("[handleSave] relacionActual:", relacionActual);
+
 	delete payload.id;
 	delete payload._id;
 	delete payload.displayName;
+	delete payload.unit;
+	delete payload.unitRole;
+	delete payload.resides;
+	delete payload._relacionActual;
 
 	const result = await updateUsuario(updatedEntity.id, payload);
+
+	if (result.tipo === "ocupante") {
+  	const teniaRelacion = !!relacionActual;
+  	const tieneNuevaUnidad = !!nuevaUnidad;
+
+  	const cambioUnidad =
+    	teniaRelacion && tieneNuevaUnidad && relacionActual.unidadId !== nuevaUnidad;
+  	const cambioSoloRol =
+    	teniaRelacion &&
+    	tieneNuevaUnidad &&
+    	relacionActual.unidadId === nuevaUnidad &&
+    	relacionActual.rolEnUnidad !== nuevoRol;
+  	const quitoUnidad = teniaRelacion && !tieneNuevaUnidad;
+  	const agregoUnidad = !teniaRelacion && tieneNuevaUnidad;
+
+  	console.log("[handleSave] caso detectado:", {
+    	cambioUnidad, cambioSoloRol, quitoUnidad, agregoUnidad,
+  	});
+
+  	try {
+    	if (cambioUnidad || cambioSoloRol) {
+      	await desvincularOcupante(relacionActual.unidadId, relacionActual.relacionId);
+      	await vincularOcupante(nuevaUnidad, {
+        	ocupanteId: result._id || result.id,
+        	rolEnUnidad: nuevoRol,
+      	});
+    	} else if (quitoUnidad) {
+      	await desvincularOcupante(relacionActual.unidadId, relacionActual.relacionId);
+    	} else if (agregoUnidad) {
+      	await vincularOcupante(nuevaUnidad, {
+        	ocupanteId: result._id || result.id,
+        	rolEnUnidad: nuevoRol,
+      	});
+    	}
+
+    	if (cambioUnidad || cambioSoloRol || quitoUnidad || agregoUnidad) {
+      	const unidadesActualizadas = await getUnidades();
+      	setUnidades(unidadesActualizadas);
+    	}
+  	} catch (relacionErr) {
+    	console.error("[handleSave] error relación:", relacionErr);
+    	alert("El usuario se guardó pero hubo un problema actualizando la unidad.");
+  	}
+	}
+
 	setUsers((prev) =>
   	prev.map((u) =>
     	u.id === updatedEntity.id
@@ -149,18 +243,17 @@ const handleDelete = async (row) => {
   	)
 	);
 
-      handleCloseModal();
-      setSuccessMessage("Cambios guardados con éxito");
-      setIsSuccessOpen(true);
-    } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "No se pudo guardar el usuario";
-
-      alert(msg);
-    }
-  };
+	handleCloseModal();
+	setSuccessMessage("Cambios guardados con éxito");
+	setIsSuccessOpen(true);
+  } catch (err) {
+	const msg =
+  	err?.response?.data?.message ||
+  	err?.message ||
+  	"No se pudo guardar el usuario";
+	alert(msg);
+  }
+};
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -170,13 +263,31 @@ const handleDelete = async (row) => {
 
  // Alta del nuevo usuario
   
- const handleCreateUser = async (nuevoUsuario) => {
+const handleCreateUser = async (nuevoUsuario) => {
   try {
 	const payload = { ...nuevoUsuario };
 	const passwordTemporal = payload.passwordTemporal || "Temporal123!";
 	delete payload.passwordTemporal;
-
+	const unidadId = payload.unit;
+	const rolEnUnidad = payload.unitRole;
+	delete payload.unit;
+	delete payload.unitRole;
+	delete payload.resides;
 	const created = await createUsuario(payload, passwordTemporal);
+
+	if (created.tipo === "ocupante" && unidadId && rolEnUnidad) {
+  	try {
+    	await vincularOcupante(unidadId, {
+      	ocupanteId: created._id || created.id,
+      	rolEnUnidad,
+    	});
+      const unidadesActualizadas = await getUnidades();
+      setUnidades(unidadesActualizadas);
+  	} catch (vinculacionErr) {
+    	console.warn("No se pudo vincular el ocupante a la unidad:", vinculacionErr);
+  	}
+	}
+
 	const adapted = {
   	...created,
   	id: created._id || created.id,
@@ -192,9 +303,8 @@ const handleDelete = async (row) => {
   	err?.message ||
   	"No se pudo crear el usuario";
 	alert(msg);
-  }
+  };
 };
-
 
   // Filtrado sobre la lista
   const filteredUsers = useMemo(() => {
@@ -278,6 +388,7 @@ const handleDelete = async (row) => {
         draft={draft}
         setDraft={setDraft}
         readOnly={readOnly}
+        unidadesDisponibles={unidades}
       />
 
       <SuccessModal

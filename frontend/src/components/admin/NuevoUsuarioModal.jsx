@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X, ChevronDown } from "lucide-react";
 import Button from "../ui/Button";
 import EditableInput from "../dashboard/fields/EditableInput";
-import { buildingUnitsLong } from "../../data/unitsData";
+import { getUnidades } from "../../services/unidadesService";
 
 const ROLES = ["administrador", "ocupante", "proveedor"];
 const TIPOS_DOCUMENTO = ["DNI", "CUIL", "CUIT", "PASAPORTE"];
@@ -81,6 +81,20 @@ function NuevoUsuarioModal({ onClose, onCreate }) {
   const [paso, setPaso] = useState("datos");
   const [formulario, setFormulario] = useState(ESTADO_INICIAL);
   const [error, setError] = useState("");
+  const [unidadesDisponibles, setUnidadesDisponibles] = useState([]);
+
+useEffect(() => {
+  let activo = true;
+  getUnidades()
+	.then((data) => {
+  	if (!activo) return;
+  	setUnidadesDisponibles(data);
+	})
+	.catch(() => {
+	});
+  return () => { activo = false; };
+}, []);
+
 
   const tipoSeleccionado = (formulario.tipo || "").trim().toLowerCase();
   const esAdmin = tipoSeleccionado === "administrador";
@@ -297,25 +311,43 @@ function NuevoUsuarioModal({ onClose, onCreate }) {
             	type="text"
           	/>
           	<CampoSelect
-            	label="Seleccione el rol"
-            	value={formulario.tipo}
-            	onChange={(v) => actualizarCampo("tipo", v)}
-            	options={ROLES}
-            	labels={ROL_LABELS}
-            	placeholder="Seleccione el rol"
-          	/>
+				label="Seleccione el rol"
+				value={formulario.tipo}
+				onChange={(v) => actualizarCampo("tipo", v)}
+				options={ROLES}
+				labels={ROL_LABELS}
+				placeholder="Seleccione el rol"
+			/>
+
         	</div>
       	)}
 
       	{paso === "detalles" && esOcupante && (
         	<div className="space-y-5">
-          	<CampoSelect
-            	label="Seleccione la unidad"
-            	value={formulario.unit}
-            	onChange={(v) => actualizarCampo("unit", v)}
-            	options={buildingUnitsLong}
-            	placeholder="Seleccione la unidad"
-          	/>
+          	
+	<div className="space-y-2">
+		<label className="text-sm font-medium text-slate-700">Seleccione la unidad</label>
+		<div className="relative">
+			<select
+			value={formulario.unit}
+			onChange={(e) => actualizarCampo("unit", e.target.value)}
+			className="w-full appearance-none rounded-lg border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-900/40"
+			>
+			<option value="">Seleccione la unidad</option>
+			{unidadesDisponibles.map((u) => {
+				const enRefaccion = u.estado === "EN_REFACCION";
+				return (
+					<option key={u._id} value={u._id} disabled={enRefaccion}>
+					Piso {u.piso} - Unidad {u.numero}
+					{enRefaccion ? " (en refacción)" : ""}
+					</option>
+				);
+			})}
+
+			</select>
+			<ChevronDown size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#0f5b66]" />
+		</div>
+	</div>
           	<CampoSelect
             	label="Rol en la unidad"
             	value={formulario.unitRole}
