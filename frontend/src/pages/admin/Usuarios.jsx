@@ -13,14 +13,17 @@ import {
   getUsuarios,
   updateUsuario,
   deleteUsuario,
+  createUsuario,
 } from "../../services/usersService";
+import { getUnidades, vincularOcupante, desvincularOcupante } from "../../services/unidadesService";
 
 function UsuariosAdmin() {
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("Todos");
-  const [statusFilter, setStatusFilter] = useState("Todos");
+  const [roleFilter, setRoleFilter] = useState("todos");
+  const [statusFilter, setStatusFilter] = useState("todos");
 
   const [users, setUsers] = useState([]);
+  const [unidades, setUnidades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -40,17 +43,25 @@ function UsuariosAdmin() {
   );
 
   useEffect(() => {
-    let activo = true;
+   let activo = true;
 
-    async function cargarUsuarios() {
-      try {
-        const data = await getUsuarios();
+   async function cargarUsuarios() {
+	  try {
+      const [data, unidadesData] = await Promise.all([
+        getUsuarios(),
+        getUnidades(),
+      ]);
+
+  	if (!activo) return;
+  	setUnidades(unidadesData);
+
 
         if (!activo) return;
 
         const adapted = data.map((u) => ({
           ...u,
-          displayName: `${u.name} ${u.lastName}`.trim(),
+          id: u._id || u.id, 
+          displayName: `${u.nombre|| ""} ${u.apellido|| ""}`.trim(),
         }));
 
         setUsers(adapted);
@@ -77,48 +88,72 @@ function UsuariosAdmin() {
     };
   }, []);
 
+  // Busca la unidad actual del ocupante
+  const buscarRelacionActual = (ocupanteId) => {
+    for (const unidad of unidades) {
+    const relacion = unidad.unidadRelaciones?.find(
+      (rel) =>
+        rel.esOcupanteActual === true &&
+        rel.estado === "VIGENTE" &&
+        (rel.ocupanteId?._id === ocupanteId || rel.ocupanteId === ocupanteId)
+    );
+    if (relacion) {
+      return {
+        unidadId: unidad._id,
+        relacionId: relacion._id,
+        rolEnUnidad: relacion.rolEnUnidad,
+      };
+    }
+    }
+    return null;
+  };
+
   // Editar (modal en modo edición)
-  const handleEdit = (row) => {
-    const copy =
-      typeof structuredClone === "function"
-        ? structuredClone(row)
-        : JSON.parse(JSON.stringify(row));
+const handleEdit = (row) => {
+  const copy = structuredClone(row);
+  if (row.tipo === "ocupante") {
+	const relacion = buscarRelacionActual(row.id);
+	if (relacion) {
+  	copy.unit = relacion.unidadId;
+  	copy.unitRole = relacion.rolEnUnidad;
+  	copy._relacionActual = relacion;
+	}
+  }
+  setDraft(copy);
+  setReadOnly(false);
+  setIsModalOpen(true);
+};
 
-    setDraft(copy);
-    setReadOnly(false);
-    setIsModalOpen(true);
-  };
-
-  // Ver (modal en modo solo lectura)
-  const handleView = (row) => {
-    const copy =
-      typeof structuredClone === "function"
-        ? structuredClone(row)
-        : JSON.parse(JSON.stringify(row));
-
-    setDraft(copy);
-    setReadOnly(true);
-    setIsModalOpen(true);
-  };
+// Ver (modal en modo solo lectura)
+const handleView = (row) => {
+  const copy = structuredClone(row);
+  if (row.tipo === "ocupante") {
+	const relacion = buscarRelacionActual(row.id);
+	if (relacion) {
+  	copy.unit = relacion.unidadId;
+  	copy.unitRole = relacion.rolEnUnidad;
+	}
+  }
+  setDraft(copy);
+  setReadOnly(true);
+  setIsModalOpen(true);
+};
 
   // Soft delete: pasa a INACTIVO
-  const handleDelete = async (row) => {
-    const confirmar = window.confirm(
-      `¿Desactivar a ${row.displayName || row.name}?`
-    );
-    if (!confirmar) return;
-
-    try {
-      await deleteUsuario(row.id);
-
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === row.id ? { ...u, status: "Inactivo" } : u
-        )
-      );
-
-      setSuccessMessage("Estado cambiado con éxito");
-      setIsSuccessOpen(true);
+const handleDelete = async (row) => {
+  const confirmar = window.confirm(
+	`¿Desactivar a ${row.displayName || row.nombre}?`
+  );
+  if (!confirmar) return;
+  try {
+	await deleteUsuario(row.id);
+	setUsers((prev) =>
+  	prev.map((u) =>
+    	u.id === row.id ? { ...u, estado: "INACTIVO" } : u
+  	)
+	);
+	setSuccessMessage("Usuario desactivado con éxito");
+	setIsSuccessOpen(true);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -130,33 +165,95 @@ function UsuariosAdmin() {
   };
 
   // Guardar edición (PUT al back)
-  const handleSave = async (updatedEntity) => {
-    try {
-      await updateUsuario(updatedEntity.id, updatedEntity);
+const handleSave = async (updatedEntity) => {
+  try {
+	const payload = { ...updatedEntity };
 
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === updatedEntity.id
-            ? {
-                ...updatedEntity,
-                displayName: `${updatedEntity.name ?? ""} ${updatedEntity.lastName ?? ""}`.trim(),
-              }
-            : u
-        )
-      );
+	const nuevaUnidad = payload.unit;
+	const nuevoRol = payload.unitRole || "PROPIETARIO";  // default si no se eligió
+	const relacionActual = payload._relacionActual;
 
-      handleCloseModal();
-      setSuccessMessage("Cambios guardados con éxito");
-      setIsSuccessOpen(true);
-    } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "No se pudo guardar el usuario";
+	console.log("[handleSave] nuevaUnidad:", nuevaUnidad);
+	console.log("[handleSave] nuevoRol:", nuevoRol);
+	console.log("[handleSave] relacionActual:", relacionActual);
 
-      alert(msg);
-    }
-  };
+	delete payload.id;
+	delete payload._id;
+	delete payload.displayName;
+	delete payload.unit;
+	delete payload.unitRole;
+	delete payload.resides;
+	delete payload._relacionActual;
+
+	const result = await updateUsuario(updatedEntity.id, payload);
+
+	if (result.tipo === "ocupante") {
+  	const teniaRelacion = !!relacionActual;
+  	const tieneNuevaUnidad = !!nuevaUnidad;
+
+  	const cambioUnidad =
+    	teniaRelacion && tieneNuevaUnidad && relacionActual.unidadId !== nuevaUnidad;
+  	const cambioSoloRol =
+    	teniaRelacion &&
+    	tieneNuevaUnidad &&
+    	relacionActual.unidadId === nuevaUnidad &&
+    	relacionActual.rolEnUnidad !== nuevoRol;
+  	const quitoUnidad = teniaRelacion && !tieneNuevaUnidad;
+  	const agregoUnidad = !teniaRelacion && tieneNuevaUnidad;
+
+  	console.log("[handleSave] caso detectado:", {
+    	cambioUnidad, cambioSoloRol, quitoUnidad, agregoUnidad,
+  	});
+
+  	try {
+    	if (cambioUnidad || cambioSoloRol) {
+      	await desvincularOcupante(relacionActual.unidadId, relacionActual.relacionId);
+      	await vincularOcupante(nuevaUnidad, {
+        	ocupanteId: result._id || result.id,
+        	rolEnUnidad: nuevoRol,
+      	});
+    	} else if (quitoUnidad) {
+      	await desvincularOcupante(relacionActual.unidadId, relacionActual.relacionId);
+    	} else if (agregoUnidad) {
+      	await vincularOcupante(nuevaUnidad, {
+        	ocupanteId: result._id || result.id,
+        	rolEnUnidad: nuevoRol,
+      	});
+    	}
+
+    	if (cambioUnidad || cambioSoloRol || quitoUnidad || agregoUnidad) {
+      	const unidadesActualizadas = await getUnidades();
+      	setUnidades(unidadesActualizadas);
+    	}
+  	} catch (relacionErr) {
+    	console.error("[handleSave] error relación:", relacionErr);
+    	alert("El usuario se guardó pero hubo un problema actualizando la unidad.");
+  	}
+	}
+
+	setUsers((prev) =>
+  	prev.map((u) =>
+    	u.id === updatedEntity.id
+      	? {
+          	...result,
+          	id: result._id || result.id,
+          	displayName: `${result.nombre || ""} ${result.apellido || ""}`.trim(),
+        	}
+      	: u
+  	)
+	);
+
+	handleCloseModal();
+	setSuccessMessage("Cambios guardados con éxito");
+	setIsSuccessOpen(true);
+  } catch (err) {
+	const msg =
+  	err?.response?.data?.message ||
+  	err?.message ||
+  	"No se pudo guardar el usuario";
+	alert(msg);
+  }
+};
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -164,34 +261,61 @@ function UsuariosAdmin() {
     setReadOnly(false);
   };
 
- // Alta local del nuevo usuario
-  // (Más adelante esto se puede reemplazar por createUsuario() cuando exista el endpoint)
-  const handleCreateUser = (nuevoUsuario) => {
-    const usuarioNormalizado = {
-      id: Date.now(),
-      ...nuevoUsuario,
-      displayName: `${nuevoUsuario.name ?? ""} ${
-        nuevoUsuario.lastName ?? ""
-      }`.trim(),
-      status: nuevoUsuario.status || "Pendiente",
-    };
+ // Alta del nuevo usuario
+  
+const handleCreateUser = async (nuevoUsuario) => {
+  try {
+	const payload = { ...nuevoUsuario };
+	const passwordTemporal = payload.passwordTemporal || "Temporal123!";
+	delete payload.passwordTemporal;
+	const unidadId = payload.unit;
+	const rolEnUnidad = payload.unitRole;
+	delete payload.unit;
+	delete payload.unitRole;
+	delete payload.resides;
+	const created = await createUsuario(payload, passwordTemporal);
 
-    setUsers((prev) => [usuarioNormalizado, ...prev]);
-    setIsCreateModalOpen(false);
-    setSuccessMessage("Usuario creado con éxito");
-    setIsSuccessOpen(true);
+	if (created.tipo === "ocupante" && unidadId && rolEnUnidad) {
+  	try {
+    	await vincularOcupante(unidadId, {
+      	ocupanteId: created._id || created.id,
+      	rolEnUnidad,
+    	});
+      const unidadesActualizadas = await getUnidades();
+      setUnidades(unidadesActualizadas);
+  	} catch (vinculacionErr) {
+    	console.warn("No se pudo vincular el ocupante a la unidad:", vinculacionErr);
+  	}
+	}
+
+	const adapted = {
+  	...created,
+  	id: created._id || created.id,
+  	displayName: `${created.nombre || ""} ${created.apellido || ""}`.trim(),
+	};
+	setUsers((prev) => [adapted, ...prev]);
+	setIsCreateModalOpen(false);
+	setSuccessMessage("Usuario creado con éxito");
+	setIsSuccessOpen(true);
+  } catch (err) {
+	const msg =
+  	err?.response?.data?.message ||
+  	err?.message ||
+  	"No se pudo crear el usuario";
+	alert(msg);
   };
+};
 
-  // Filtrado local sobre la lista
+  // Filtrado sobre la lista
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
       const matchesSearch =
         (u.displayName || "").toLowerCase().includes(search.toLowerCase()) ||
         (u.email || "").toLowerCase().includes(search.toLowerCase());
 
-      const matchesRole = roleFilter === "Todos" || u.role === roleFilter;
+      const matchesRole = roleFilter === "todos" || u.tipo === roleFilter;
       const matchesStatus =
-        statusFilter === "Todos" || u.status === statusFilter;
+        statusFilter === "todos" || u.estado === statusFilter;
 
       return matchesSearch && matchesRole && matchesStatus;
     });
@@ -264,6 +388,7 @@ function UsuariosAdmin() {
         draft={draft}
         setDraft={setDraft}
         readOnly={readOnly}
+        unidadesDisponibles={unidades}
       />
 
       <SuccessModal

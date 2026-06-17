@@ -1,6 +1,19 @@
 import DataTable from "../dashboard/DataTable";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 
+const TIPO_LABELS = {
+  administrador: "Administrador",
+  ocupante: "Ocupante",
+  proveedor: "Proveedor",
+};
+
+const ESTADO_LABELS = {
+  ACTIVO: "Activo",
+  PENDIENTE: "Pendiente",
+  INACTIVO: "Inactivo",
+};
+
+
 function AdminUsersTable({
   users = [],
   onEdit = () => {},
@@ -22,48 +35,52 @@ function AdminUsersTable({
   	),
 	},
 	{
-  	key: "role",
-  	header: "Rol",
-  	render: (row) => {
-    	const roleStyles = {
-      	Administrador: "bg-blue-50 text-blue-700 border border-blue-400",
-      	Ocupante: "bg-primary/10 text-primary border border-primary/40",
-      	Proveedor: "bg-cyan-50 text-cyan-700 border border-cyan-400",
-    	};
-    	return (
-      	<span
-        	className={`
-          	inline-flex items-center rounded-full px-2.5 py-0.5
-          	text-[10px] font-semibold
-          	${roleStyles[row.role] || "bg-gray-100 text-gray-500"}
-        	`}
-      	>
-        	{row.role}
-      	</span>
-    	);
-  	},
+	key: "tipo",
+	header: "Rol",
+	render: (row) => {
+		const tipo = row.tipo;
+		const label = TIPO_LABELS[tipo] || tipo;
+		const tipoStyles = {
+		administrador: "bg-blue-50 text-blue-700 border border-blue-400",
+		ocupante: "bg-primary/10 text-primary border border-primary/40",
+		proveedor: "bg-cyan-50 text-cyan-700 border border-cyan-400",
+		};
+		return (
+		<span
+			className={`
+			inline-flex items-center rounded-full px-2.5 py-0.5
+			text-[10px] font-semibold
+			${tipoStyles[tipo] || "bg-gray-100 text-gray-500"}
+			`}
+		>
+			{label}
+		</span>
+		);
+	},
 	},
 	{
-  	key: "status",
-  	header: "Estado",
-  	render: (row) => {
-    	const statusStyles = {
-      	Activo: "bg-emerald-50 text-emerald-600 border border-emerald-400",
-      	Pendiente: "bg-yellow-50 text-yellow-600 border border-yellow-400",
-      	Inactivo: "bg-gray-200 text-gray-500 border border-gray-400",
-    	};
-    	return (
-      	<span
-        	className={`
-          	inline-flex items-center rounded-full px-2 py-0.5
-          	text-[10px] font-bold
-          	${statusStyles[row.status]}
-        	`}
-      	>
-        	{row.status}
-      	</span>
-    	);
-  	},
+	key: "estado",
+	header: "Estado",
+	render: (row) => {
+		const estado = row.estado;
+		const label = ESTADO_LABELS[estado] || estado;
+		const estadoStyles = {
+		ACTIVO: "bg-emerald-50 text-emerald-600 border border-emerald-400",
+		PENDIENTE: "bg-yellow-50 text-yellow-600 border border-yellow-400",
+		INACTIVO: "bg-gray-200 text-gray-500 border border-gray-400",
+		};
+		return (
+		<span
+			className={`
+			inline-flex items-center rounded-full px-2 py-0.5
+			text-[10px] font-bold
+			${estadoStyles[estado]}
+			`}
+		>
+			{label}
+		</span>
+		);
+	},
 	},
 	{
   	key: "actions",

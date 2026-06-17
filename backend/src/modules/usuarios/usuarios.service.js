@@ -31,19 +31,9 @@ const validarCrear = (data) => {
     throw makeError(400, `tipo inválido. Permitidos: ${Object.values(TIPOS_USUARIO).join(', ')}`);
   }
 
-  // Password fuerte (como en auth)
-  const okPass =
-    passwordTemporal.length >= 8 &&
-    /[A-Z]/.test(passwordTemporal) &&
-    /[a-z]/.test(passwordTemporal) &&
-    /[0-9]/.test(passwordTemporal) &&
-    /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordTemporal);
-
-  if (!okPass) {
-    throw makeError(
-      400,
-      'passwordTemporal debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial'
-    );
+  // La contraseña temporal solo necesita un mínimo razonable. El usuario la cambiará en su primer login.
+  if (passwordTemporal.length < 6) {
+    throw makeError(400, 'passwordTemporal debe tener al menos 6 caracteres');
   }
 
   // Reglas por rol
@@ -52,7 +42,13 @@ const validarCrear = (data) => {
       throw makeError(400, `tipoDoc inválido. Permitidos: ${TIPOS_DOC_VALIDOS.join(', ')}`);
     }
     if (!numDoc) throw makeError(400, 'numDoc es requerido');
+    if (!/^[\d\-]+$/.test(numDoc) || numDoc.length < 7) {
+    	throw makeError(400, 'numDoc solo puede contener dígitos y guiones (mínimo 7 caracteres)');
+	}
     if (!telefono) throw makeError(400, 'telefono es requerido');
+    if (!/^[+]?[\d\s\-()]{7,}$/.test(telefono)) {
+      throw makeError(400, 'telefono solo puede contener números, espacios, guiones y paréntesis');
+    }
   }
 
   if (tipo === TIPOS_USUARIO.PROVEEDOR) {
