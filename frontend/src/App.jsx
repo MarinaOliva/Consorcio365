@@ -15,7 +15,7 @@ import GastosAdmin from "./pages/admin/Gastos";
 import MantenimientoAdmin from "./pages/admin/mantenimiento/Mantenimiento";
 import DetallePlanMantenimiento from "./pages/admin/mantenimiento/DetallePlanMantenimiento";
 import DocumentosAdmin from "./pages/admin/documentos/Documentos";
-import AvisosAdmin from "./pages/admin/Avisos";
+import AvisosAdmin from "./pages/admin/avisos/Avisos";
 
 
 // Ocupante

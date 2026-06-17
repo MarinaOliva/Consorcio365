@@ -24,7 +24,7 @@ function Button({
     `,
 
     ghost: `
-      bg-white/40
+      bg-white/50
       text-primary
       border border-primary
       shadow-sm
@@ -52,6 +52,16 @@ function Button({
       transition-all
       focus-visible:ring-primary/50
       focus-visible:ring-offset-white
+    `,
+
+    danger: `
+      bg-red-50
+      text-red-600
+      border border-red-400
+      shadow-sm
+      hover:bg-red-100
+      hover:border-red-500
+      focus-visible:ring-red-400/40
     `,
   };
 
