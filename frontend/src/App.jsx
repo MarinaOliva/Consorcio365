@@ -8,7 +8,7 @@ import ProtectedRoute from "./components/shared/ProtectedRoute";
 // Admin
 import DashboardAdmin from "./pages/admin/Dashboard";
 import UsuariosAdmin from "./pages/admin/Usuarios";
-import UnidadesAdmin from "./pages/admin/Unidades";
+import UnidadesAdmin from "./pages/admin/unidades/Unidades";
 import IncidenciasAdmin from "./pages/admin/Incidencias";
 import TrabajosAdmin from "./pages/admin/Trabajos";
 import GastosAdmin from "./pages/admin/Gastos";
