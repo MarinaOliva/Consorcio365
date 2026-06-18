@@ -1,9 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import ContenedorPanelPorRol from "../../../components/dashboard/ContenedorPanelPorRol";
 import SuccessModal from "../../../components/shared/SuccessModal";
 
-import { AVISOS_ADMIN_MOCK } from "../../../data/avisosAdminData";
+import {
+  getAvisos,
+  createAviso,
+  updateAviso,
+  deleteAviso,
+} from "../../../services/avisosService";
+import { getEdificios } from "../../../services/edificiosService";
 
 import FiltrosAvisosAdmin from "./componentes/FiltrosAvisosAdmin";
 import TarjetaAvisoAdmin from "./componentes/TarjetaAvisoAdmin";
@@ -13,31 +19,12 @@ function normalizarTexto(valor) {
   return String(valor ?? "").toLowerCase().trim();
 }
 
-function convertirFechaISOaArgentina(fechaISO) {
-  if (!fechaISO) return "";
-
-  const [anio, mes, dia] = fechaISO.split("-");
-  if (!anio || !mes || !dia) return fechaISO;
-
-  return `${dia}/${mes}/${anio}`;
-}
-
-function convertirFechaArgentinaADate(fecha) {
-  if (!fecha) return null;
-
-  const [dia, mes, anio] = fecha.split("/").map(Number);
-
-  if (!dia || !mes || !anio) return null;
-
-  return new Date(anio, mes - 1, dia);
-}
-
 function estaDentroDelRangoFecha(fecha, filtro) {
   if (filtro === "Todos") return true;
+  if (!fecha) return false;
 
-  const fechaAviso = convertirFechaArgentinaADate(fecha);
-
-  if (!fechaAviso) return false;
+  const fechaAviso = new Date(fecha);
+  if (isNaN(fechaAviso.getTime())) return false;
 
   const hoy = new Date();
   const diasFiltro = Number(filtro);
@@ -49,15 +36,18 @@ function estaDentroDelRangoFecha(fecha, filtro) {
 }
 
 const AVISO_INICIAL = {
-  id: null,
-  edificio: "Torre Norte",
+  _id: null,
+  edificioId: "",
   titulo: "",
-  descripcion: "",
+  cuerpo: "",
   fechaPublicacion: "",
 };
 
 function AvisosAdmin() {
-  const [avisos, setAvisos] = useState(AVISOS_ADMIN_MOCK);
+  const [avisos, setAvisos] = useState([]);
+  const [edificios, setEdificios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [busqueda, setBusqueda] = useState("");
   const [fechaFiltro, setFechaFiltro] = useState("Todos");
@@ -72,6 +62,39 @@ function AvisosAdmin() {
   const [modalExitoEliminacionAbierto, setModalExitoEliminacionAbierto] =
     useState(false);
 
+  // Cargar avisos y edificios al montar
+  useEffect(() => {
+	let activo = true;
+
+	async function cargarDatos() {
+  	try {
+    	const [dataAvisos, dataEdificios] = await Promise.all([
+      	getAvisos(),
+      	getEdificios(),
+    	]);
+
+    	if (!activo) return;
+    	setAvisos(dataAvisos);
+    	setEdificios(dataEdificios);
+  	} catch (err) {
+    	if (!activo) return;
+    	const msg =
+      	err?.response?.data?.message ||
+      	err?.message ||
+      	"No se pudieron cargar los avisos";
+    	setError(msg);
+  	} finally {
+    	if (activo) setLoading(false);
+  	}
+	}
+
+	cargarDatos();
+
+	return () => {
+  	activo = false;
+	};
+  }, []);
+
   const avisosFiltrados = useMemo(() => {
     const textoBusqueda = normalizarTexto(busqueda);
 
@@ -80,13 +103,15 @@ function AvisosAdmin() {
         aviso.fechaPublicacion,
         fechaFiltro
       );
+      
+      const nombreEdificio = aviso.edificioId?.nombre || ""; 
 
       const coincideBusqueda =
         !textoBusqueda ||
         normalizarTexto(aviso.titulo).includes(textoBusqueda) ||
-        normalizarTexto(aviso.descripcion).includes(textoBusqueda) ||
-        normalizarTexto(aviso.edificio).includes(textoBusqueda) ||
-        String(aviso.id).includes(textoBusqueda.replace("#", ""));
+        normalizarTexto(aviso.cuerpo).includes(textoBusqueda) ||
+        normalizarTexto(nombreEdificio).includes(textoBusqueda) ||
+        String(aviso._id).includes(textoBusqueda.replace("#", ""));
 
       return coincideFecha && coincideBusqueda;
     });
@@ -98,32 +123,48 @@ function AvisosAdmin() {
   };
 
   const handleNuevoAviso = () => {
-    setModoModal("crear");
-    setAvisoDraft({
-      ...AVISO_INICIAL,
-      fechaPublicacion: new Date().toISOString().slice(0, 10),
-    });
-    setModalAvisoAbierto(true);
+  setModoModal("crear");
+  // Si hay edificios, preseleccionamos el primero
+  const edificioPorDefecto = edificios[0]?._id || "";
+  setAvisoDraft({
+	...AVISO_INICIAL,
+	edificioId: edificioPorDefecto,
+	fechaPublicacion: new Date().toISOString().slice(0, 10),
+  });
+  setModalAvisoAbierto(true);
   };
 
   const handleEditarAviso = (aviso) => {
-    const fechaDate = convertirFechaArgentinaADate(aviso.fechaPublicacion);
+  const fechaDate = aviso.fechaPublicacion ? new Date(aviso.fechaPublicacion) : null;
+  const fechaISO =
+	fechaDate && !isNaN(fechaDate.getTime())
+  	? fechaDate.toISOString().slice(0, 10)
+  	: "";
 
-    const fechaISO = fechaDate
-      ? fechaDate.toISOString().slice(0, 10)
-      : "";
-
-    setModoModal("editar");
-    setAvisoDraft({
-      ...aviso,
-      fechaPublicacion: fechaISO,
-    });
-    setModalAvisoAbierto(true);
+  setModoModal("editar");
+  setAvisoDraft({
+	...aviso,
+	edificioId: aviso.edificioId?._id || aviso.edificioId || "",
+	fechaPublicacion: fechaISO,
+  });
+  setModalAvisoAbierto(true);
   };
 
-  const handleEliminarAviso = (aviso) => {
-    setAvisos((prev) => prev.filter((item) => item.id !== aviso.id));
-    setModalExitoEliminacionAbierto(true);
+  const handleEliminarAviso = async (aviso) => {
+  const confirmar = window.confirm(`¿Eliminar el aviso "${aviso.titulo}"?`);
+  if (!confirmar) return;
+
+  try {
+	await deleteAviso(aviso._id);
+	setAvisos((prev) => prev.filter((item) => item._id !== aviso._id));
+	setModalExitoEliminacionAbierto(true);
+  } catch (err) {
+	const msg =
+  	err?.response?.data?.message ||
+  	err?.message ||
+  	"No se pudo eliminar el aviso";
+	alert(msg);
+  }
   };
 
   const actualizarCampoAviso = (campo, valor) => {
@@ -133,31 +174,53 @@ function AvisosAdmin() {
     }));
   };
 
-  const guardarAviso = () => {
-    const avisoNormalizado = {
-      ...avisoDraft,
-      fechaPublicacion: convertirFechaISOaArgentina(avisoDraft.fechaPublicacion),
-    };
+const guardarAviso = async () => {
+  // Validaciones básicas
+  if (!avisoDraft.titulo.trim()) {
+	alert("Ingresá un título.");
+	return;
+  }
+  if (!avisoDraft.cuerpo.trim()) {
+	alert("Ingresá el contenido del aviso.");
+	return;
+  }
+  if (!avisoDraft.edificioId) {
+	alert("Seleccioná un edificio.");
+	return;
+  }
 
-    if (modoModal === "crear") {
-      const nuevoAviso = {
-        ...avisoNormalizado,
-        id: Date.now(),
-      };
+  try {
+	const payload = {
+  	edificioId: avisoDraft.edificioId,
+  	titulo: avisoDraft.titulo.trim(),
+  	cuerpo: avisoDraft.cuerpo.trim(),
+  	fechaPublicacion: avisoDraft.fechaPublicacion,
+	};
 
-      setAvisos((prev) => [nuevoAviso, ...prev]);
-    } else {
-      setAvisos((prev) =>
-        prev.map((item) =>
-          item.id === avisoNormalizado.id ? avisoNormalizado : item
-        )
-      );
-    }
+	let avisoGuardado;
+	if (modoModal === "crear") {
+  	avisoGuardado = await createAviso(payload);
+  	setAvisos((prev) => [avisoGuardado, ...prev]);
+	} else {
+  	avisoGuardado = await updateAviso(avisoDraft._id, payload);
+  	setAvisos((prev) =>
+    	prev.map((item) =>
+      	item._id === avisoDraft._id ? avisoGuardado : item
+    	)
+  	);
+	}
 
-    setModalAvisoAbierto(false);
-    setAvisoDraft(AVISO_INICIAL);
-    setModalExitoEdicionAbierto(true);
-  };
+	setModalAvisoAbierto(false);
+	setAvisoDraft(AVISO_INICIAL);
+	setModalExitoEdicionAbierto(true);
+  } catch (err) {
+	const msg =
+  	err?.response?.data?.message ||
+  	err?.message ||
+  	"No se pudo guardar el aviso";
+	alert(msg);
+  }
+};
 
   return (
     <ContenedorPanelPorRol
@@ -173,10 +236,21 @@ function AvisosAdmin() {
           onNuevoAviso={handleNuevoAviso}
         />
 
-        {avisosFiltrados.length > 0 ? (
+        {loading && (
+  <p className="py-4 text-sm text-textMuted">Cargando avisos...</p>
+)}
+
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3">
+        <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+
+        {!loading && !error && (
+          avisosFiltrados.length > 0 ? (
           avisosFiltrados.map((aviso) => (
             <TarjetaAvisoAdmin
-              key={aviso.id}
+              key={aviso._id}
               aviso={aviso}
               onEditar={handleEditarAviso}
               onEliminar={handleEliminarAviso}
@@ -196,6 +270,7 @@ function AvisosAdmin() {
               Probá ajustar la búsqueda o el filtro por fecha.
             </p>
           </div>
+        )
         )}
       </section>
 
@@ -206,6 +281,7 @@ function AvisosAdmin() {
         valores={avisoDraft}
         onChangeCampo={actualizarCampoAviso}
         modo={modoModal}
+        edificios={edificios}
       />
 
       <SuccessModal
