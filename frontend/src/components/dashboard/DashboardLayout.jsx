@@ -8,7 +8,11 @@ function DashboardLayout({
   user,
   title = "Panel general",
   subtitle = "",
+  onSettingsClick,
+  showSettingsButton = true
+
 }) {
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -25,6 +29,9 @@ function DashboardLayout({
           title={title}
           subtitle={subtitle}
           onMenuClick={() => setIsSidebarOpen(true)}
+          onSettingsClick={onSettingsClick}
+          showSettingsButton={showSettingsButton}
+
         />
 
         <main className="w-full px-4 py-4 sm:px-5 lg:px-6 flex-1 overflow-y-auto">
