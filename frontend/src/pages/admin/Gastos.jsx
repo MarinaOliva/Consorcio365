@@ -79,7 +79,7 @@ function GastoTipoBadge({ tipo }) {
   const estilos = {
     reactivo: "border-secondary bg-secondary text-white",
     preventivo: "border-emerald-500 bg-emerald-500 text-white",
-    manual: "border-slate-500 bg-slate-500 text-white",
+    manual: "border-primary bg-primary text-white",
   };
 
   return (
@@ -206,10 +206,6 @@ function GastosAdmin() {
     setGastos((prev) => [nuevoRegistro, ...prev]);
     setIsCargarGastoManualOpen(false);
 
-    // Si querés que siempre se vea el recién cargado sin importar filtros,
-    // descomentá estas dos líneas:
-    // setTipoFiltro("Todos");
-    // setMesFiltro("Todos");
   };
 
   return (
@@ -238,7 +234,7 @@ function GastosAdmin() {
             className="gap-2"
           >
             <Plus size={15} />
-            Cargar Gasto Manual
+            Cargar gasto manual
           </Button>
         </div>
 
@@ -256,7 +252,7 @@ function GastosAdmin() {
             valor={formatearMonto(resumen.reactivos)}
             descripcion={`${resumen.porcentajeReactivos}% del total`}
             icon={AlertTriangle}
-            iconClassName="text-secondary"
+            iconClassName="text-primary"
           />
 
           <ResumenGastoCard
@@ -264,7 +260,7 @@ function GastosAdmin() {
             valor={formatearMonto(resumen.preventivos)}
             descripcion={`${resumen.porcentajePreventivos}% del total`}
             icon={CalendarCheck}
-            iconClassName="text-emerald-500"
+            iconClassName="text-primary"
           />
 
           <ResumenGastoCard
@@ -272,7 +268,7 @@ function GastosAdmin() {
             valor={formatearMonto(resumen.manuales)}
             descripcion={`${resumen.porcentajeManuales}% del total`}
             icon={FileText}
-            iconClassName="text-slate-500"
+            iconClassName="text-primary"
           />
         </div>
 
