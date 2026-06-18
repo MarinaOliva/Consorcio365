@@ -174,6 +174,7 @@ function ModalEditarAviso({
   valores,
   onChangeCampo,
   modo = "editar",
+  edificios = [],
 }) {
   if (!isOpen) return null;
 
@@ -214,13 +215,18 @@ function ModalEditarAviso({
         </div>
 
         <div className="flex-1 space-y-6 overflow-y-auto px-8 py-6">
-          <input
-            type="text"
-            value={valores.edificio}
-            onChange={(e) => onChangeCampo("edificio", e.target.value)}
+          <select
+            value={valores.edificioId}
+            onChange={(e) => onChangeCampo("edificioId", e.target.value)}
             className={CLASE_CAMPO_MODAL}
-            placeholder="Edificio"
-          />
+          >
+            <option value="">Seleccionar edificio</option>
+            {edificios.map((edificio) => (
+              <option key={edificio._id} value={edificio._id}>
+                {edificio.nombre}
+              </option>
+            ))}
+          </select>
 
           <input
             type="text"
@@ -231,8 +237,8 @@ function ModalEditarAviso({
           />
 
           <textarea
-            value={valores.descripcion}
-            onChange={(e) => onChangeCampo("descripcion", e.target.value)}
+            value={valores.cuerpo}
+            onChange={(e) => onChangeCampo("cuerpo", e.target.value)}
             rows={5}
             className={`
               ${CLASE_CAMPO_MODAL}

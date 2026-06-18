@@ -1,7 +1,7 @@
 import { Building2, CalendarDays, Pencil, Trash2 } from "lucide-react";
 import Button from "../../../../components/ui/Button";
 
-function TarjetaAvisoAdmin({ aviso, onEditar, onEliminar }) {
+function TarjetaAvisoAdmin({ aviso, onEditar, onEliminar, mostrarAcciones = true }) {
   return (
     <div
       className="
@@ -17,25 +17,31 @@ function TarjetaAvisoAdmin({ aviso, onEditar, onEliminar }) {
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-textMuted">
           <div className="flex items-center gap-2">
             <Building2 size={14} />
-            <span>{aviso.edificio}</span>
+            <span>{aviso.edificioId?.nombre || "Edificio"}</span>
           </div>
 
           <div className="flex items-center gap-2">
             <CalendarDays size={14} />
-            <span>Publicado: {aviso.fechaPublicacion}</span>
+            <span>
+              Publicado:{" "}
+              {aviso.fechaPublicacion
+                ? new Date(aviso.fechaPublicacion).toLocaleDateString("es-AR")
+                : ""}
+            </span>
           </div>
         </div>
 
         <p className="text-sm leading-relaxed text-textMain">
-          {aviso.descripcion}
+          {aviso.cuerpo}
         </p>
 
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            type="button"
-            onClick={() => onEditar?.(aviso)}
+        {mostrarAcciones && (
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={() => onEditar?.(aviso)}
             className="gap-2 bg-primary/50"
           >
             <Pencil size={14} />
@@ -53,6 +59,7 @@ function TarjetaAvisoAdmin({ aviso, onEditar, onEliminar }) {
             Eliminar
           </Button>
         </div>
+        )}
       </div>
     </div>
   );

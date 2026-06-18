@@ -15,6 +15,7 @@ function FiltrosAvisosAdmin({
   fechaFiltro,
   setFechaFiltro,
   onNuevoAviso,
+  mostrarBotonNuevo = true,
 }) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -53,6 +54,7 @@ function FiltrosAvisosAdmin({
         </div>
       </div>
 
+      {mostrarBotonNuevo && (
       <Button
         variant="elevated"
         size="md"
@@ -62,6 +64,7 @@ function FiltrosAvisosAdmin({
         <Plus size={16} />
         Nuevo aviso
       </Button>
+      )}
     </div>
   );
 }
