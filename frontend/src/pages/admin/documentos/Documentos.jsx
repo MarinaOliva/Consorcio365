@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Upload, X } from "lucide-react";
 
 import ContenedorPanelPorRol from "../../../components/dashboard/ContenedorPanelPorRol";
@@ -7,9 +7,11 @@ import Button from "../../../components/ui/Button";
 import SuccessModal from "../../../components/shared/SuccessModal";
 
 import {
-  DOCUMENTOS_ADMIN_MOCK,
-  TIPOS_DOCUMENTO_DISPONIBLES,
-} from "../../../data/documentosAdminData";
+  getDocumentos,
+  createDocumento,
+  deleteDocumento,
+} from "../../../services/documentosService";
+import { getEdificios } from "../../../services/edificiosService";
 
 import FiltrosDocumentosAdmin from "./componentes/FiltrosDocumentosAdmin";
 import TablaDocumentosAdmin from "./componentes/TablaDocumentosAdmin";
@@ -20,11 +22,27 @@ const TIPOS_MIME_PERMITIDOS = [
   "image/jpeg",
   "image/png",
 ];
-const EXTENSIONES_PERMITIDAS = ".pdf,.jpg,.jpeg,.png,.docx";
+const EXTENSIONES_PERMITIDAS = ".pdf,.jpg,.jpeg,.png";
+
+const CATEGORIAS_DOCUMENTO = [
+  { value: "reglamento", label: "Reglamento" },
+  { value: "acta", label: "Acta" },
+  { value: "informe", label: "Informe" },
+  { value: "plano", label: "Plano" },
+  { value: "contrato", label: "Contrato" },
+  { value: "otro", label: "Otro" },
+];
+
+const VISIBILIDADES_DOCUMENTO = [
+  { value: "todos", label: "Todos" },
+  { value: "solo_ocupantes", label: "Solo ocupantes" },
+  { value: "solo_admin", label: "Solo administrador" },
+];
 
 const ESTADO_DOCUMENTO_INICIAL = {
   titulo: "",
   tipo: "",
+  visibilidad: "todos",
   archivo: null,
 };
 
@@ -46,20 +64,6 @@ function obtenerExtensionArchivo(nombreArchivo = "") {
   return partes[partes.length - 1].toUpperCase();
 }
 
-function siguienteCodigoDocumento(documentos = []) {
-  const numeros = documentos.map((documento) => {
-    const partes = String(documento.codigo ?? "").split("-");
-    return Number(partes[1]) || 0;
-  });
-
-  const maximo = Math.max(1000, ...numeros);
-  return `DOC-${String(maximo + 1).padStart(4, "0")}`;
-}
-
-function obtenerFechaActualArgentina() {
-  return new Date().toLocaleDateString("es-AR");
-}
-
 function ModalCargarDocumento({
   isOpen,
   onClose,
@@ -67,6 +71,9 @@ function ModalCargarDocumento({
   valores,
   errores,
   arrastreActivo,
+  subiendo = false,
+  categorias = [],
+  visibilidades = [],
   onChangeCampo,
   onSeleccionarArchivo,
   onDragOverZona,
@@ -142,9 +149,9 @@ function ModalCargarDocumento({
               className={CLASE_CAMPO_MODAL}
             >
               <option value="">Seleccione</option>
-              {TIPOS_DOCUMENTO_DISPONIBLES.map((tipo) => (
-                <option key={tipo} value={tipo}>
-                  {tipo}
+              {categorias.map((categoria) => (
+                <option key={categoria.value} value={categoria.value}>
+                  {categoria.label}
                 </option>
               ))}
             </select>
@@ -152,6 +159,24 @@ function ModalCargarDocumento({
             {errores.tipo ? (
               <p className="text-xs font-medium text-red-500">{errores.tipo}</p>
             ) : null}
+          </div>
+            
+          <div className="max-w-[295px] space-y-2">
+            <label className="block text-sm font-semibold text-textMain">
+            Visibilidad <span className="text-primary">*</span>
+            </label>
+
+            <select
+            value={valores.visibilidad}
+            onChange={(e) => onChangeCampo("visibilidad", e.target.value)}
+            className={CLASE_CAMPO_MODAL}
+            >
+            {visibilidades.map((vis) => (
+              <option key={vis.value} value={vis.value}>
+                {vis.label}
+              </option>
+            ))}
+            </select>
           </div>
 
           <div className="space-y-2">
@@ -222,16 +247,17 @@ function ModalCargarDocumento({
         </div>
 
         <div className="flex justify-center gap-6 border-t border-border px-6 py-5">
-          <Button variant="elevated" type="button" onClick={onSave}>
-            Guardar
+          <Button variant="elevated" type="button" onClick={onSave}disabled={subiendo}>
+           {subiendo ? "Subiendo..." : "Guardar"}
           </Button>
 
           <Button
             variant="neutral"
             type="button"
             onClick={onClose}
+            disabled={subiendo}
             className="border-red-300 text-red-500 hover:border-red-400 hover:bg-red-50"
-          >
+            >
             Cancelar
           </Button>
         </div>
@@ -241,7 +267,10 @@ function ModalCargarDocumento({
 }
 
 function DocumentosAdmin() {
-  const [documentos, setDocumentos] = useState(DOCUMENTOS_ADMIN_MOCK);
+  const [documentos, setDocumentos] = useState([]);
+  const [edificios, setEdificios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [busqueda, setBusqueda] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("Todos");
@@ -252,19 +281,51 @@ function DocumentosAdmin() {
   const [documentoDraft, setDocumentoDraft] = useState(ESTADO_DOCUMENTO_INICIAL);
   const [errores, setErrores] = useState({});
   const [arrastreActivo, setArrastreActivo] = useState(false);
+  const [subiendo, setSubiendo] = useState(false);
+
+  // Cargar documentos y edificios al montar
+  useEffect(() => {
+	let activo = true;
+
+	async function cargarDatos() {
+  	try {
+    	const [dataDocumentos, dataEdificios] = await Promise.all([
+      	getDocumentos(),
+      	getEdificios(),
+    	]);
+
+    	if (!activo) return;
+    	setDocumentos(dataDocumentos);
+    	setEdificios(dataEdificios);
+  	} catch (err) {
+    	if (!activo) return;
+    	const msg =
+      	err?.response?.data?.message ||
+      	err?.message ||
+      	"No se pudieron cargar los documentos";
+    	setError(msg);
+  	} finally {
+    	if (activo) setLoading(false);
+  	}
+	}
+
+	cargarDatos();
+
+	return () => {
+  	activo = false;
+	};
+  }, []);
 
   const documentosFiltrados = useMemo(() => {
     const textoBusqueda = normalizarTexto(busqueda);
 
     return documentos.filter((documento) => {
       const coincideTipo =
-        tipoFiltro === "Todos" || documento.tipo === tipoFiltro;
+        tipoFiltro === "Todos" || documento.categoria === tipoFiltro;
 
       const coincideBusqueda =
         !textoBusqueda ||
-        normalizarTexto(documento.titulo).includes(textoBusqueda) ||
-        normalizarTexto(documento.codigo).includes(textoBusqueda) ||
-        normalizarTexto(documento.nombreArchivo).includes(textoBusqueda) ||
+        normalizarTexto(documento.nombre).includes(textoBusqueda) ||
         String(documento.id).includes(textoBusqueda.replace("#", ""));
 
       return coincideTipo && coincideBusqueda;
@@ -383,51 +444,69 @@ function DocumentosAdmin() {
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const guardarDocumento = () => {
+  const guardarDocumento = async () => {
     if (!validarFormularioDocumento()) return;
 
-    const nuevoDocumento = {
-      id: Date.now(),
-      codigo: siguienteCodigoDocumento(documentos),
-      titulo: documentoDraft.titulo.trim(),
-      tipo: documentoDraft.tipo,
-      fechaCreacion: obtenerFechaActualArgentina(),
-      nombreArchivo: documentoDraft.archivo.name,
-      extension: obtenerExtensionArchivo(documentoDraft.archivo.name) || "PDF",
-      archivoLocal: documentoDraft.archivo,
-    };
+    const edificioId = edificios[0]?._id;
+    if (!edificioId) {
+    setErrores((prev) => ({
+      ...prev,
+      archivo: "No hay edificios disponibles para asociar el documento",
+    }));
+    return;
+    }
 
-    setDocumentos((prev) => [nuevoDocumento, ...prev]);
+    setSubiendo(true);
+
+    try {
+    const formData = new FormData();
+    formData.append("edificioId", edificioId);
+    formData.append("nombre", documentoDraft.titulo.trim());
+    formData.append("categoria", documentoDraft.tipo);
+    formData.append("visibilidad", documentoDraft.visibilidad);
+    formData.append("archivo", documentoDraft.archivo);
+
+    const documentoCreado = await createDocumento(formData);
+
+    setDocumentos((prev) => [documentoCreado, ...prev]);
     setModalCargarAbierto(false);
     resetearFormulario();
     setModalExitoAbierto(true);
-  };
+    } catch (err) {
+    const msg =
+      err?.response?.data?.message ||
+      err?.message ||
+      "No se pudo subir el documento";
+    setErrores((prev) => ({ ...prev, archivo: msg }));
+    } finally {
+    setSubiendo(false);
+    }
+};
+
+
 
   const cerrarModalExito = () => {
     setModalExitoAbierto(false);
   };
 
-  const eliminarDocumento = (documento) => {
-    setDocumentos((prev) => prev.filter((item) => item.id !== documento.id));
+  const eliminarDocumento = async (documento) => {
+    try {
+      await deleteDocumento(documento._id);
+      setDocumentos((prev) => prev.filter((item) => item._id !== documento._id));
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "No se pudo eliminar el documento";
+    alert(msg);
+    }
   };
 
   const descargarDocumento = (documento) => {
-    if (documento.archivoLocal instanceof File) {
-      const url = URL.createObjectURL(documento.archivoLocal);
-      const enlace = document.createElement("a");
-      enlace.href = url;
-      enlace.download = documento.archivoLocal.name;
-      document.body.appendChild(enlace);
-      enlace.click();
-      document.body.removeChild(enlace);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      return;
+    if (documento.url) {
+      window.open(documento.url, "_blank", "noopener,noreferrer");
     }
-
-    if (documento.urlDescarga && documento.urlDescarga !== "#") {
-      window.open(documento.urlDescarga, "_blank", "noopener,noreferrer");
-    }
-  };
+};
 
   return (
     <ContenedorPanelPorRol titulo="Documentos" subtitulo="Gestión de archivos">
@@ -437,17 +516,29 @@ function DocumentosAdmin() {
           setBusqueda={setBusqueda}
           tipoFiltro={tipoFiltro}
           setTipoFiltro={setTipoFiltro}
-          tiposDisponibles={TIPOS_DOCUMENTO_DISPONIBLES}
+          tiposDisponibles={CATEGORIAS_DOCUMENTO}
           onSubirDocumento={abrirModalCargarDocumento}
         />
 
         <SectionCard title="Listado de documentos">
+          {loading && (
+            <p className="py-4 text-sm text-textMuted">Cargando documentos...</p>
+          )}
+
+          {error && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-3">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
+          {!loading && !error && (
           <TablaDocumentosAdmin
             documentos={documentosFiltrados}
             totalDocumentos={documentos.length}
             onEliminar={eliminarDocumento}
             onDescargar={descargarDocumento}
           />
+          )}
         </SectionCard>
       </section>
 
@@ -458,6 +549,9 @@ function DocumentosAdmin() {
         valores={documentoDraft}
         errores={errores}
         arrastreActivo={arrastreActivo}
+        subiendo={subiendo}
+        categorias={CATEGORIAS_DOCUMENTO}
+        visibilidades={VISIBILIDADES_DOCUMENTO}
         onChangeCampo={actualizarCampoDocumento}
         onSeleccionarArchivo={seleccionarArchivo}
         onDragOverZona={manejarDragOverZona}

@@ -26,6 +26,7 @@ function TablaDocumentosAdmin({
   totalDocumentos = 0,
   onEliminar,
   onDescargar,
+  mostrarAcciones = true,
 }) {
   return (
     <div className="space-y-3">
@@ -54,10 +55,7 @@ function TablaDocumentosAdmin({
 
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-textMain">
-                      {documento.titulo}
-                    </p>
-                    <p className="mt-1 text-[11px] text-textMuted">
-                      #{documento.codigo}
+                      {documento.nombre}
                     </p>
                   </div>
                 </div>
@@ -67,14 +65,17 @@ function TablaDocumentosAdmin({
                 <p className="mb-1 text-[10px] font-bold uppercase text-textMuted">
                   Tipo
                 </p>
-                <BadgeTipoDocumento tipo={documento.tipo} />
+                <BadgeTipoDocumento tipo={documento.categoria} />
               </div>
 
               <div className="border-b border-border/40 py-2">
                 <p className="mb-1 text-[10px] font-bold uppercase text-textMuted">
                   Fecha de creación
                 </p>
-                <p className="text-xs text-textMain">{documento.fechaCreacion}</p>
+                <p className="text-xs text-textMain">{documento.createdAt
+                      ? new Date(documento.createdAt).toLocaleDateString("es-AR")
+                      : ""}
+                </p>
               </div>
 
               <div className="pt-2">
@@ -83,13 +84,15 @@ function TablaDocumentosAdmin({
                 </p>
 
                 <div className="flex items-center gap-2">
-                  <BotonAccion
-                    label="Eliminar documento"
-                    danger
-                    onClick={() => onEliminar?.(documento)}
-                  >
+                  {mostrarAcciones && (
+                      <BotonAccion
+                        label="Eliminar documento"
+                        danger
+                        onClick={() => onEliminar?.(documento)}
+                      >
                     <Trash2 size={15} />
                   </BotonAccion>
+                  )}
 
                   <BotonAccion
                     label="Descargar documento"
@@ -142,33 +145,36 @@ function TablaDocumentosAdmin({
 
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-textMain">
-                          {documento.titulo}
-                        </p>
-                        <p className="mt-1 text-[11px] text-textMuted">
-                          #{documento.codigo}
+                          {documento.nombre}
                         </p>
                       </div>
                     </div>
                   </td>
 
                   <td className="px-4 py-4 text-textMain">
-                    <BadgeTipoDocumento tipo={documento.tipo} />
+                    <BadgeTipoDocumento tipo={documento.categoria} />
                   </td>
 
                   <td className="px-4 py-4 text-textMain">
-                    <span className="font-medium">{documento.fechaCreacion}</span>
+                    <span className="font-medium">{documento.createdAt
+                      ? new Date(documento.createdAt).toLocaleDateString("es-AR")
+                      : ""}
+                    </span>
                   </td>
 
                   <td className="px-4 py-4 text-textMain">
                     <div className="flex items-center justify-center gap-2">
-                      <BotonAccion
-                        label="Eliminar documento"
-                        danger
-                        onClick={() => onEliminar?.(documento)}
-                      >
+                      {mostrarAcciones && (
+
+                          <BotonAccion
+                            label="Eliminar documento"
+                            danger
+                            onClick={() => onEliminar?.(documento)}
+                          >
                         <Trash2 size={15} />
                       </BotonAccion>
-
+                      )}
+                      
                       <BotonAccion
                         label="Descargar documento"
                         onClick={() => onDescargar?.(documento)}

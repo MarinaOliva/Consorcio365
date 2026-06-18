@@ -16,6 +16,7 @@ function FiltrosDocumentosAdmin({
   setTipoFiltro,
   tiposDisponibles = [],
   onSubirDocumento,
+  mostrarBotonSubir = true,
 }) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -30,7 +31,7 @@ function FiltrosDocumentosAdmin({
                     type="text"
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
-                    placeholder="Buscar por título, código o número..."
+                    placeholder="Buscar por título..."
                     className={`${CLASE_CAMPO_FILTRO} pl-9`}
                 />
             </div>
@@ -42,24 +43,26 @@ function FiltrosDocumentosAdmin({
                     className={CLASE_CAMPO_FILTRO}
                 >
                     <option value="Todos">Tipo: Todos</option>
-                    {tiposDisponibles.map((tipo) => (
-                    <option key={tipo} value={tipo}>
-                        {tipo}
+                    {tiposDisponibles.map((categoria) => (
+                    <option key={categoria.value} value={categoria.value}>
+                        {categoria.label}
                     </option>
                     ))}
                 </select>
             </div>
        </div>
 
-      <Button
-        variant="elevated"
-        size="md"
-        onClick={onSubirDocumento}
-        className="w-full gap-2 lg:w-auto"
-      >
-        <Upload size={16} />
-        Subir documento
-      </Button>
+      {mostrarBotonSubir && (
+        <Button
+          variant="elevated"
+          size="md"
+          onClick={onSubirDocumento}
+          className="w-full gap-2 lg:w-auto"
+        >
+          <Upload size={16} />
+          Subir documento
+        </Button>
+      )}
     </div>
   );
 }
