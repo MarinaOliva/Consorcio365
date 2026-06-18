@@ -274,7 +274,7 @@ function TrabajosToolbar({
         className="w-full gap-2 lg:w-auto"
       >
         <Plus size={16} />
-        Crear Trabajo
+        Crear trabajo
       </Button>
     </div>
   );

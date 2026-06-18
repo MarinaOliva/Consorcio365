@@ -9,7 +9,7 @@ import ProtectedRoute from "./components/shared/ProtectedRoute";
 import DashboardAdmin from "./pages/admin/Dashboard";
 import UsuariosAdmin from "./pages/admin/Usuarios";
 import UnidadesAdmin from "./pages/admin/unidades/Unidades";
-import IncidenciasAdmin from "./pages/admin/Incidencias";
+import IncidenciasAdmin from "./pages/admin/incidencias/Incidencias";
 import TrabajosAdmin from "./pages/admin/Trabajos";
 import GastosAdmin from "./pages/admin/Gastos";
 import MantenimientoAdmin from "./pages/admin/mantenimiento/Mantenimiento";
