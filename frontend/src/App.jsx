@@ -10,7 +10,7 @@ import DashboardAdmin from "./pages/admin/Dashboard";
 import UsuariosAdmin from "./pages/admin/Usuarios";
 import UnidadesAdmin from "./pages/admin/unidades/Unidades";
 import IncidenciasAdmin from "./pages/admin/incidencias/Incidencias";
-import TrabajosAdmin from "./pages/admin/Trabajos";
+import TrabajosAdmin from "./pages/admin/trabajos/Trabajos";
 import GastosAdmin from "./pages/admin/Gastos";
 import MantenimientoAdmin from "./pages/admin/mantenimiento/Mantenimiento";
 import DetallePlanMantenimiento from "./pages/admin/mantenimiento/DetallePlanMantenimiento";
