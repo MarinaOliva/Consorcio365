@@ -2,15 +2,15 @@ import DataTable from "../dashboard/DataTable";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 
 const TIPO_LABELS = {
-  administrador: "Administrador",
-  ocupante: "Ocupante",
-  proveedor: "Proveedor",
+  administrador: "ADMINISTRADOR",
+  ocupante: "OCUPANTE",
+  proveedor: "PROVEEDOR",
 };
 
 const ESTADO_LABELS = {
-  ACTIVO: "Activo",
-  PENDIENTE: "Pendiente",
-  INACTIVO: "Inactivo",
+  ACTIVO: "ACTIVO",
+  PENDIENTE: "PENDIENTE",
+  INACTIVO: "INACTIVO",
 };
 
 
