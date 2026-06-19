@@ -58,12 +58,6 @@ function normalizarTexto(valor) {
   return String(valor ?? "").toLowerCase().trim();
 }
 
-function obtenerExtensionArchivo(nombreArchivo = "") {
-  const partes = nombreArchivo.split(".");
-  if (partes.length < 2) return "";
-  return partes[partes.length - 1].toUpperCase();
-}
-
 function ModalCargarDocumento({
   isOpen,
   onClose,
