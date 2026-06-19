@@ -16,6 +16,7 @@ import ContenedorPanelPorRol from "../../components/dashboard/ContenedorPanelPor
 import Button from "../../components/ui/Button";
 import CargarGastoManualModal from "../../components/admin/CargarGastoManualModal";
 
+//Base reutilizable para filtros
 const CLASE_CAMPO_FILTRO = `
   w-auto rounded-lg border border-border bg-white
   px-3 py-2 text-sm text-textMain
@@ -39,6 +40,7 @@ const MESES_DEL_ANIO = [
   "Diciembre",
 ];
 
+// Convierte un número a formato moneda argentino.
 function formatearMonto(valor) {
   return new Intl.NumberFormat("es-AR", {
     style: "currency",
@@ -51,6 +53,7 @@ function normalizarTexto(valor) {
   return String(valor ?? "").toLowerCase().trim();
 }
 
+// Convierte "15/01/2026" -> "Enero"
 function obtenerNombreMes(fecha) {
   if (!fecha) return "";
 
@@ -67,12 +70,15 @@ function obtenerNombreMes(fecha) {
   return nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
 }
 
+/* Calcular porcentaje para mostrar cuánto representa cada tipo de gasto
+dentro del total filtrado.*/
 function obtenerPorcentaje(valor, total) {
   if (!total) return 0;
 
   return Math.round((valor / total) * 100);
 }
 
+// Muestra el tipo de gasto con diferentes colores.
 function GastoTipoBadge({ tipo }) {
   const normalizado = normalizarTexto(tipo);
 
@@ -95,6 +101,8 @@ function GastoTipoBadge({ tipo }) {
   );
 }
 
+/* Componente reutilizable para las 4 métricas de arriba:
+ - total del mes - reactivos - preventivos - manuales */
 function ResumenGastoCard({
   titulo,
   valor,
@@ -128,6 +136,7 @@ function ResumenGastoCard({
   );
 }
 
+// Componente principal
 function GastosAdmin() {
   const navigate = useNavigate();
 
@@ -136,6 +145,9 @@ function GastosAdmin() {
   const [mesFiltro, setMesFiltro] = useState("Todos");
   const [isCargarGastoManualOpen, setIsCargarGastoManualOpen] = useState(false);
 
+  
+  /* Lista filtrada de gastos. Se recalcula solo cuando cambian:
+  - gastos - tipoFiltro - mesFiltro */
   const gastosFiltrados = useMemo(() => {
     return gastos.filter((gasto) => {
       const coincideTipo =
@@ -151,6 +163,9 @@ function GastosAdmin() {
     });
   }, [gastos, tipoFiltro, mesFiltro]);
 
+  
+  /* Resumen acumulado de gastos. Calcula:
+  - total - total por tipo - porcentaje que representa cada tipo */
   const resumen = useMemo(() => {
     const total = gastosFiltrados.reduce((acc, gasto) => acc + gasto.monto, 0);
 
@@ -177,18 +192,23 @@ function GastosAdmin() {
     };
   }, [gastosFiltrados]);
 
+  // Handlers del modal:
+  // Abre el modal para cargar un gasto manual
   const handleCargarGastoManual = () => {
     setIsCargarGastoManualOpen(true);
   };
 
+  // Cierra el modal sin guardar
   const handleCerrarModalCargarGastoManual = () => {
     setIsCargarGastoManualOpen(false);
   };
 
+  // Guarda el gasto manual agregado desde el modal
   const handleGuardarGastoManual = (nuevoGasto) => {
     const hoy = new Date();
     const fechaActual = hoy.toLocaleDateString("es-AR");
-
+    
+    // Armado del nuevo registro con formato compatible con la tabla
     const nuevoRegistro = {
       id:
         typeof crypto !== "undefined" && crypto.randomUUID
@@ -203,8 +223,9 @@ function GastosAdmin() {
       comprobante: nuevoGasto.comprobante,
     };
 
-    setGastos((prev) => [nuevoRegistro, ...prev]);
-    setIsCargarGastoManualOpen(false);
+    
+    setGastos((prev) => [nuevoRegistro, ...prev]); // Se inserta primero el nuevo gasto
+    setIsCargarGastoManualOpen(false); // Se cierra el modal
 
   };
 
@@ -214,6 +235,9 @@ function GastosAdmin() {
       subtitulo="Gestión y seguimiento de gastos del consorcio"
     >
       <section className="mx-auto max-w-[1120px] space-y-5">
+          {/* Botones superiores:
+            - Volver a pantalla anterior
+            - Abrir modal de carga manual */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Button
             variant="ghost"
@@ -237,7 +261,8 @@ function GastosAdmin() {
             Cargar gasto manual
           </Button>
         </div>
-
+ 
+          {/* Resumen visual de gastos */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <ResumenGastoCard
             titulo="Total del mes"
@@ -272,6 +297,7 @@ function GastosAdmin() {
           />
         </div>
 
+          {/* Filtros */}
         <div className="flex flex-row flex-wrap gap-3">
           <select
             value={tipoFiltro}
@@ -306,6 +332,7 @@ function GastosAdmin() {
           </div>
         </div>
 
+          {/*Tabla de gastos*/}
         <div
           className="
             rounded-xl border border-secondary/70 bg-white p-4
@@ -374,6 +401,7 @@ function GastosAdmin() {
                         </span>
                       </td>
 
+                       {/*Botón para ver el comprobante*/}
                       <td className="px-3 py-3 text-center">
                         <button
                           type="button"
@@ -411,6 +439,7 @@ function GastosAdmin() {
             </table>
           </div>
 
+          {/* Pie informativo con total filtrado */}
           <div
             className="
               mt-3 rounded-lg border border-border/70 bg-surfaceSoft/50
@@ -424,6 +453,7 @@ function GastosAdmin() {
         </div>
       </section>
 
+      {/*Modal de carga manual*/}
       <CargarGastoManualModal
         isOpen={isCargarGastoManualOpen}
         onClose={handleCerrarModalCargarGastoManual}
