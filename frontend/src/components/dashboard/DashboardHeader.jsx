@@ -4,6 +4,9 @@ function DashboardHeader({
   title,
   subtitle,
   onMenuClick,
+  onSettingsClick,
+  showSettingsButton = true,
+
 }) {
   return (
     <header className="sticky top-0 z-20 w-full min-w-0 flex h-[58px] items-center justify-between bg-secondary px-4 text-white shadow-md sm:px-6 lg:px-7">
@@ -30,13 +33,16 @@ function DashboardHeader({
         </div>
       </div>
 
-      <button
-        type="button"
-        className="rounded-full p-1.5 text-[25px] leading-none text-white/80 transition hover:bg-secondarySoft hover:text-white"
-        aria-label="Configuración"
-      >
-        <Settings size={18} strokeWidth={2.2} />
-      </button>
+      {showSettingsButton && (
+        <button
+          type="button"
+          onClick={onSettingsClick}
+          className="rounded-full p-1.5 text-[25px] leading-none text-white/80 transition hover:bg-secondarySoft hover:text-white"
+          aria-label="Configuración"
+        >
+          <Settings size={18} strokeWidth={2.2} />
+        </button>
+      )}  
     </header>
   );
 }
