@@ -252,7 +252,7 @@ function ModalNuevoReclamo({
             </Button>
 
             <Button
-              variant="danger"
+              variant="neutral"
               size="md"
               type="button"
               onClick={onClose}
