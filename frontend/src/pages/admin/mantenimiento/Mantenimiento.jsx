@@ -1,137 +1,155 @@
-import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, CalendarCheck2, Clock3, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 import DashboardLayout from "../../../components/dashboard/DashboardLayout";
 import Button from "../../../components/ui/Button";
 import GridEstadisticasMantenimiento from "./componentes/GridEstadisticasMantenimiento";
 import TablaPlanesMantenimiento from "./componentes/TablaPlanesMantenimiento";
 import ModalNuevoPlanMantenimiento from "./componentes/ModalNuevoPlanMantenimiento";
-import {
-  ESTADISTICAS_MANTENIMIENTO,
-  PLANES_MANTENIMIENTO_MOCK,
-} from "../../../data/datosMantenimientoAdmin";
+import SuccessModal from "../../../components/shared/SuccessModal";
+
 import {
   adminMenuItems,
   adminUser,
 } from "../../../data/adminDashboardData";
-import { useNavigate } from "react-router-dom";
+
+import { useMantenimiento } from "../../../hooks/useMantenimiento";
 
 function Mantenimiento() {
-  const [filtroEstado, setFiltroEstado] = useState("Todos");
-
   const navigate = useNavigate();
-  
-  const [modalNuevoPlanAbierto, setModalNuevoPlanAbierto] = useState(false);
-  const [planes, setPlanes] = useState(PLANES_MANTENIMIENTO_MOCK);
 
-  const estadisticas = useMemo(() => ESTADISTICAS_MANTENIMIENTO, []);
+  const {
+	planes,
+	planesFiltrados,
+	loading,
+	error,
+	filtroEstadoPlan,
+	setFiltroEstadoPlan,
+	filtroEstadoInstancia,
+	setFiltroEstadoInstancia,
+	modalNuevoPlanAbierto,
+	abrirModalNuevoPlan,
+	cerrarModalNuevoPlan,
+	manejarCrearPlan,
+	modalExitoAbierto,
+	cerrarModalExito,
+  } = useMantenimiento();
 
-  const planesFiltrados = useMemo(() => {
-    if (filtroEstado === "Todos") return planes;
+  const estadisticas = [
+  {
+    id: 1,
+    titulo: "Planes activos",
+    valor: String(planes.filter((p) => p.activo).length),
+    icono: CalendarCheck2,
+  },
+  {
+    id: 2,
+    titulo: "Instancias próximas",
+    valor: String(
+      planes.filter((p) => p.proximaInstancia?.estado === "PROGRAMADA").length
+    ),
+    icono: Clock3,
+  },
+  {
+    id: 3,
+    titulo: "Instancias en curso",
+    valor: String(
+      planes.filter((p) => p.proximaInstancia?.estado === "EN_CURSO").length
+    ),
+    icono: CheckCircle2,
+  },
+];
 
-    return planes.filter((plan) => {
-      const estadoPlan = (plan.estadoPlan || "").trim().toLowerCase();
-      const estadoInstancia = (plan.estadoInstancia || "").trim().toLowerCase();
-
-      if (filtroEstado === "Inactivo") {
-        return estadoPlan === "inactivo";
-      }
-
-      if (filtroEstado === "Activo") {
-        return estadoPlan === "activo";
-      }
-
-      if (filtroEstado === "Programado") {
-        return estadoInstancia === "programado";
-      }
-
-      if (filtroEstado === "En curso") {
-        return estadoInstancia === "en curso";
-      }
-
-      return true;
-    });
-  }, [planes, filtroEstado]);
-
-  const abrirModalNuevoPlan = () => {
-    setModalNuevoPlanAbierto(true);
-  };
-
-  const cerrarModalNuevoPlan = () => {
-    setModalNuevoPlanAbierto(false);
-  };
-
-  const manejarCrearPlan = (nuevoPlan) => {
-    const planCreado = {
-      id: Date.now(),
-      tarea: nuevoPlan.tarea.trim(),
-      especialidad: nuevoPlan.especialidad.trim(),
-      frecuencia: nuevoPlan.frecuencia,
-      estadoPlan: "Activo",
-      instanciaProgramada: nuevoPlan.fechaProgramada || "A programar",
-      estadoInstancia: nuevoPlan.fechaProgramada ? "Programado" : "---",
-      responsable: nuevoPlan.responsable.trim(),
-    };
-
-    setPlanes((prev) => [planCreado, ...prev]);
-  };
 
 
   const manejarVerDetalle = (plan) => {
-    navigate(`/admin/mantenimiento/${plan.id}`);
+	navigate(`/admin/mantenimiento/${plan._id || plan.id}`);
   };
 
   return (
-    <DashboardLayout
-      menuItems={adminMenuItems}
-      user={adminUser}
-      title="Planes de mantenimiento"
-      subtitle="Gestión de mantenimiento programado"
-    >
-      <section className="mx-auto max-w-[1120px] space-y-5">
-        <div className="flex justify-end">
-          <Button variant="elevated" onClick={abrirModalNuevoPlan}>
-            <Plus size={16} className="mr-1.5" />
-            Nuevo plan
-          </Button>
-        </div>
+	<DashboardLayout
+  	menuItems={adminMenuItems}
+  	user={adminUser}
+  	title="Planes de mantenimiento"
+  	subtitle="Gestión de mantenimiento programado"
+	>
+  	<section className="mx-auto max-w-[1120px] space-y-5">
+    	<div className="flex justify-end">
+      	<Button variant="elevated" onClick={abrirModalNuevoPlan}>
+        	<Plus size={16} className="mr-1.5" />
+        	Nuevo plan
+      	</Button>
+    	</div>
 
-        <GridEstadisticasMantenimiento estadisticas={estadisticas} />
+    	<GridEstadisticasMantenimiento estadisticas={estadisticas} />
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
+    	<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-start">
+      	<select
+        	value={filtroEstadoPlan}
+        	onChange={(e) => setFiltroEstadoPlan(e.target.value)}
+        	className="
+          	rounded-lg border border-border bg-white
+          	px-3 py-2 text-sm text-textMain
+          	outline-none transition
+          	focus:border-primary focus:ring-2 focus:ring-primary/20
+        	"
+      	>
+        	<option value="Todos">Estado plan: Todos</option>
+        	<option value="Activo">Activo</option>
+        	<option value="Inactivo">Inactivo</option>
+      	</select>
 
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className="
-                rounded-lg border border-border bg-white
-                px-3 py-2 text-sm text-textMain
-                outline-none transition
-               focus:border-primary focus:ring-2 focus:ring-primary/20
-           "
-            >
-              <option value="Todos">Estados: Todos</option>
-              <option value="Inactivo">Inactivo</option>
-              <option value="Activo">Activo</option>
-              <option value="Programado">Programado</option>
-              <option value="En curso">En curso</option>
-            </select>
-          </div>
-        </div>
+      	<select
+        	value={filtroEstadoInstancia}
+        	onChange={(e) => setFiltroEstadoInstancia(e.target.value)}
+        	className="
+          	rounded-lg border border-border bg-white
+          	px-3 py-2 text-sm text-textMain
+          	outline-none transition
+          	focus:border-primary focus:ring-2 focus:ring-primary/20
+        	"
+      	>
+        	<option value="Todos">Estado instancia: Todos</option>
+        	<option value="Programado">Programado</option>
+        	<option value="En curso">En curso</option>
+        	<option value="---">Sin instancia</option>
+      	</select>
+    	</div>
 
-        <TablaPlanesMantenimiento
-          filas={planesFiltrados}
-          onVerDetalle={manejarVerDetalle}
-        />
+    	{loading && (
+      	<p className="py-4 text-sm text-textMuted">
+        	Cargando planes de mantenimiento...
+      	</p>
+    	)}
 
-        <ModalNuevoPlanMantenimiento
-          isOpen={modalNuevoPlanAbierto}
-          onClose={cerrarModalNuevoPlan}
-          onCreate={manejarCrearPlan}
-        />
-      </section>
-    </DashboardLayout>
+    	{error && (
+      	<div className="rounded-md border border-red-200 bg-red-50 p-3">
+        	<p className="text-sm text-red-600">{error}</p>
+      	</div>
+    	)}
+
+    	{!loading && !error && (
+      	<TablaPlanesMantenimiento
+        	filas={planesFiltrados}
+        	onVerDetalle={manejarVerDetalle}
+      	/>
+    	)}
+
+    	<ModalNuevoPlanMantenimiento
+      	isOpen={modalNuevoPlanAbierto}
+      	onClose={cerrarModalNuevoPlan}
+      	onCreate={manejarCrearPlan}
+    	/>
+
+    	<SuccessModal
+      	isOpen={modalExitoAbierto}
+      	onClose={cerrarModalExito}
+      	message="Plan creado con éxito"
+    	/>
+  	</section>
+	</DashboardLayout>
   );
 }
 
 export default Mantenimiento;
+

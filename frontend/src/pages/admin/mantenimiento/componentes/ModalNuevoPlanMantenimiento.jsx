@@ -6,9 +6,20 @@ const ESTADO_INICIAL = {
   tarea: "",
   especialidad: "",
   frecuencia: "",
-  fechaProgramada: "",
-  responsable: "",
 };
+
+const ESPECIALIDADES = [
+  { value: "plomeria", label: "Plomería" },
+  { value: "electricidad", label: "Electricidad" },
+  { value: "albanileria", label: "Albañilería" },
+  { value: "ascensores", label: "Ascensores" },
+  { value: "cerrajeria", label: "Cerrajería" },
+  { value: "limpieza", label: "Limpieza" },
+  { value: "jardineria", label: "Jardinería" },
+  { value: "otro", label: "Otro" },
+];
+
+
 const CLASE_CAMPO_MODAL = `
   h-8 w-full rounded-lg border border-slate-300 bg-white
   px-3 text-sm text-slate-800 shadow-sm
@@ -55,16 +66,12 @@ function ModalNuevoPlanMantenimiento({
       nuevosErrores.tarea = "Ingresá la tarea.";
     }
 
-    if (!formulario.especialidad.trim()) {
+    if (!formulario.especialidad) {
       nuevosErrores.especialidad = "Ingresá la especialidad.";
     }
 
     if (!formulario.frecuencia) {
       nuevosErrores.frecuencia = "Seleccioná una frecuencia.";
-    }
-
-    if (!formulario.responsable.trim()) {
-      nuevosErrores.responsable = "Ingresá el responsable.";
     }
 
     setErrores(nuevosErrores);
@@ -138,21 +145,26 @@ function ModalNuevoPlanMantenimiento({
               <label className="text-sm font-medium text-slate-700">
                 Especialidad <span className="text-primary">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 value={formulario.especialidad}
                 onChange={(e) =>
                   actualizarCampo("especialidad", e.target.value)
                 }
-                placeholder="Ej: Eléctrico"
                 className={CLASE_CAMPO_MODAL}
-              />
-              {errores.especialidad ? (
+                >
+                <option value="">Seleccione una opción</option>
+                {ESPECIALIDADES.map((esp) => (
+                  <option key={esp.value} value={esp.value}>
+                    {esp.label}
+                  </option>
+                ))}
+                </select>
+                {errores.especialidad ? (
                 <p className="text-xs font-medium text-red-500">
                   {errores.especialidad}
                 </p>
-              ) : null}
-            </div>
+                ) : null}
+              </div>
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-700">
@@ -165,6 +177,7 @@ function ModalNuevoPlanMantenimiento({
               >
                 <option value="">Seleccione una opción</option>
                 <option value="Mensual">Mensual</option>
+                <option value="Trimestral">Bimestral</option>
                 <option value="Trimestral">Trimestral</option>
                 <option value="Semestral">Semestral</option>
                 <option value="Anual">Anual</option>
@@ -172,40 +185,6 @@ function ModalNuevoPlanMantenimiento({
               {errores.frecuencia ? (
                 <p className="text-xs font-medium text-red-500">
                   {errores.frecuencia}
-                </p>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
-                Fecha programada
-              </label>
-              <input
-                type="date"
-                value={formulario.fechaProgramada}
-                onChange={(e) =>
-                  actualizarCampo("fechaProgramada", e.target.value)
-                }
-                className={CLASE_CAMPO_MODAL}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
-                Responsable <span className="text-primary">*</span>
-              </label>
-              <input
-                type="text"
-                value={formulario.responsable}
-                onChange={(e) => actualizarCampo("responsable", e.target.value)}
-                placeholder="Proveedor o responsable"
-                className={CLASE_CAMPO_MODAL}
-              />
-              {errores.responsable ? (
-                <p className="text-xs font-medium text-red-500">
-                  {errores.responsable}
                 </p>
               ) : null}
             </div>
