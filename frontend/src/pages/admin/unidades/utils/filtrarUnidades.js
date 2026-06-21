@@ -28,5 +28,6 @@ export function opcionesEstadoUnidad() {
     { value: "Todos", label: "Todos los estados" },
     { value: etiquetaEstadoUnidad("Ocupada"), label: "Ocupada" },
     { value: etiquetaEstadoUnidad("Desocupada"), label: "Desocupada" },
+    { value: etiquetaEstadoUnidad("En refacción"), label: "En refacción"},
   ];
 }

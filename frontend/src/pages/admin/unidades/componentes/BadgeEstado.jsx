@@ -14,6 +14,8 @@ function BadgeEstado({ estado }) {
   const estilos = {
     ocupada: "border-emerald-400 bg-emerald-50 text-emerald-600",
     desocupada: "border-slate-400 bg-slate-100 text-slate-500",
+    "en refacción": "border-orange-400 bg-orange-50 text-orange-600",
+	  "en refaccion": "border-orange-400 bg-orange-50 text-orange-600",
 
     abierta: "border-red-400 bg-red-50 text-red-500",
     resuelta: "border-emerald-400 bg-emerald-50 text-emerald-600",
