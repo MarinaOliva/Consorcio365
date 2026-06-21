@@ -1,8 +1,7 @@
 import { DoorOpen } from "lucide-react";
 import Card from "../ui/Card";
-import { miUnidadMock } from "../../data/ocupanteDashboardData";
 
-function MiUnidadCard({ unidad = miUnidadMock }) {
+function MiUnidadCard({ unidad = {} }) {
   return (
 	<Card className="border-secondary/70 bg-white p-4 shadow-[3px_5px_8px_rgba(7,40,48,0.25)]">
   	<div className="flex items-center justify-between gap-4">

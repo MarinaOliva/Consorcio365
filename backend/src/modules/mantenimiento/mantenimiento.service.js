@@ -195,7 +195,7 @@ const listarInstancias = async (query) => {
   const instancias = await InstanciaMantenimiento.find(filtro)
 	.populate({
   	path: 'planId',
-  	select: 'tarea especialidad frecuencia edificioId',
+  	select: 'tarea especialidad frecuencia activo edificioId',
   	populate: { path: 'edificioId', select: 'nombre' }
 	})
 	.sort({ fechaProgramada: -1 });
