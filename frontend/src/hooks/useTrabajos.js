@@ -9,7 +9,10 @@ import {
   deleteTrabajo,
   updateTrabajo,
   asignarProveedor,
+  createTrabajo,
 } from "../services/trabajosService";
+
+import { getIncidencias } from "../services/incidenciasService";
 
 import {
   estaDentroDelRango,
@@ -91,13 +94,20 @@ export function useTrabajosAdmin() {
   const [trabajoEditado, setTrabajoEditado] = useState(null);
   const [isCambiosGuardadosOpen, setIsCambiosGuardadosOpen] = useState(false);
 
-  const [trabajoDraft, setTrabajoDraft] = useState(TRABAJO_DRAFT_INICIAL);
+  const DRAFT_INICIAL = {
+	incidenciaId: "",
+	proveedorId: "",
+	descripcion: "",
+	monto: 0,
+  };
+  const [trabajoDraft, setTrabajoDraft] = useState(DRAFT_INICIAL);
 
   const [isConfirmarEliminacionOpen, setIsConfirmarEliminacionOpen] = useState(false);
   const [trabajoAEliminar, setTrabajoAEliminar] = useState(null);
   const [isEliminacionSuccessOpen, setIsEliminacionSuccessOpen] = useState(false);
 
   const [proveedoresActivos, setProveedoresActivos] = useState([]);
+  const [incidenciasActivas, setIncidenciasActivas] = useState([]);
 
   const cargarTrabajos = async () => {
 	try {
@@ -126,11 +136,20 @@ export function useTrabajosAdmin() {
 	}
   };
 
-
+ const cargarIncidencias = async () => {
+	try {
+  	const abiertas = await getIncidencias({ estado: "ABIERTA" });
+  	const enProgreso = await getIncidencias({ estado: "EN_PROGRESO" });
+  	setIncidenciasActivas([...abiertas, ...enProgreso]);
+	} catch (err) {
+  	console.error("Error al cargar incidencias activas:", err);
+	}
+  };
 
   useEffect(() => {
 	cargarTrabajos();
 	cargarProveedores();
+	cargarIncidencias();
   }, []);
 
 
@@ -311,7 +330,7 @@ export function useTrabajosAdmin() {
   };
 
   const reiniciarTrabajoDraft = () => {
-	setTrabajoDraft(TRABAJO_DRAFT_INICIAL);
+	setTrabajoDraft(DRAFT_INICIAL);
   };
 
   const handleCerrarCrearTrabajo = () => {
@@ -319,11 +338,42 @@ export function useTrabajosAdmin() {
 	reiniciarTrabajoDraft();
   };
 
-  const handleCrearTrabajo = () => {
-	// TODO: llamada real al back con incidencia seleccionada
-	alert("Funcionalidad de creación de trabajo: se conectará en la próxima fase");
-	setIsCrearTrabajoOpen(false);
-	reiniciarTrabajoDraft();
+  const handleCrearTrabajo = async () => {
+	// Validaciones mínimas
+	if (!trabajoDraft.incidenciaId) {
+  	alert("Seleccioná una incidencia.");
+  	return;
+	}
+	if (!trabajoDraft.descripcion?.trim()) {
+  	alert("Ingresá la descripción del trabajo.");
+  	return;
+	}
+
+	try {
+  	const payload = {
+    	incidenciaId: trabajoDraft.incidenciaId,
+    	descripcion: trabajoDraft.descripcion.trim(),
+    	monto: Number(trabajoDraft.monto) || 0,
+  	};
+
+  	// Proveedor es opcional. 
+  	if (trabajoDraft.proveedorId) {
+    	payload.proveedorId = trabajoDraft.proveedorId;
+  	}
+
+  	await createTrabajo(payload);
+  	await cargarTrabajos();
+
+  	setIsCrearTrabajoOpen(false);
+  	reiniciarTrabajoDraft();
+  	setIsTrabajoSuccessOpen(true);
+	} catch (err) {
+  	const msg =
+    	err?.response?.data?.message ||
+    	err?.message ||
+    	"No se pudo crear el trabajo";
+  	alert(msg);
+	}
   };
 
   const handleNuevoTrabajo = () => {
@@ -398,6 +448,7 @@ export function useTrabajosAdmin() {
 	loading,
 	error,
 	proveedoresActivos,
+	incidenciasActivas,
 
 	// Filtros
 	busqueda,

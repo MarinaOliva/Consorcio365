@@ -22,6 +22,7 @@ function Trabajos() {
     trabajosFiltrados,
     totalTrabajos,
     proveedoresActivos,
+    incidenciasActivas,
 
     trabajoSeleccionado,
     trabajoEnEdicion,
@@ -108,10 +109,10 @@ function Trabajos() {
         isOpen={isCrearTrabajoOpen}
         onClose={handleCerrarCrearTrabajo}
         onCreate={handleCrearTrabajo}
-        incidencia={null}
         values={trabajoDraft}
         onChange={handleChangeTrabajoDraft}
-        modo="manual"
+        incidenciasDisponibles={incidenciasActivas}
+        proveedoresDisponibles={proveedoresActivos}
       />
 
       <SuccessModal
