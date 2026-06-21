@@ -66,6 +66,7 @@ function CrearTrabajoModal({
   onChange,
   incidenciasDisponibles = [],
   proveedoresDisponibles = [],
+  instanciaPreseleccionada = null,
 }) {
   if (!isOpen) return null;
 
@@ -119,84 +120,121 @@ function CrearTrabajoModal({
 
     	{/* Body */}
     	<div className="flex-1 space-y-5 overflow-y-auto px-8 py-6">
-      	{/* Selector de incidencia */}
-      	<div className="space-y-2">
-        	<label className="text-sm font-medium text-slate-700">
-          	Incidencia <span className="text-primary">*</span>
-        	</label>
+      	
+		{instanciaPreseleccionada ? (
+  // Caso: viene desde el detalle del plan de mantenimiento
+  <div className="rounded-lg border border-secondary bg-white/70 px-4 py-3">
+	<h3 className="mb-2 text-sm font-bold text-primary">
+  	Instancia de mantenimiento
+	</h3>
+	<div className="grid grid-cols-1 gap-x-6 gap-y-1 text-xs sm:grid-cols-2">
+  	<p>
+    	<span className="font-semibold text-textMuted">Plan:</span>{" "}
+    	<span className="font-bold text-textMain">
+      	{instanciaPreseleccionada.tarea}
+    	</span>
+  	</p>
+  	<p>
+    	<span className="font-semibold text-textMuted">Fecha programada:</span>{" "}
+    	<span className="font-bold text-textMain">
+      	{instanciaPreseleccionada.fechaProgramada}
+    	</span>
+  	</p>
+  	<p>
+    	<span className="font-semibold text-textMuted">Especialidad:</span>{" "}
+    	<span className="font-bold text-textMain">
+      	{instanciaPreseleccionada.especialidad}
+    	</span>
+  	</p>
+  	<p>
+    	<span className="font-semibold text-textMuted">Edificio:</span>{" "}
+    	<span className="font-bold text-textMain">
+      	{instanciaPreseleccionada.edificio}
+    	</span>
+  	</p>
+	</div>
+  </div>
+) : (
+  <>
+	{/* Selector de incidencia */}
+	<div className="space-y-2">
+  	<label className="text-sm font-medium text-slate-700">
+    	Incidencia <span className="text-primary">*</span>
+  	</label>
 
-        	<div className="relative">
-          	<select
-            	value={values?.incidenciaId || ""}
-            	onChange={(e) =>
-              	actualizarCampo("incidenciaId", e.target.value)
-            	}
-            	className="
-              	h-9 w-full appearance-none rounded-lg border border-slate-300 bg-white
-              	px-3 pr-9 text-sm text-slate-800 shadow-sm
-              	outline-none transition
-              	focus:border-primary focus:ring-2 focus:ring-purple-900/40
-            	"
-          	>
-            	<option value="">Seleccione una incidencia activa</option>
-            	{incidenciasDisponibles.map((inc) => (
-              	<option key={inc._id} value={inc._id}>
-                	#{inc._id.slice(-4)} — {inc.titulo} ({inc.estado})
-              	</option>
-            	))}
-          	</select>
+  	<div className="relative">
+    	<select
+      	value={values?.incidenciaId || ""}
+      	onChange={(e) =>
+        	actualizarCampo("incidenciaId", e.target.value)
+      	}
+      	className="
+        	h-9 w-full appearance-none rounded-lg border border-slate-300 bg-white
+        	px-3 pr-9 text-sm text-slate-800 shadow-sm
+        	outline-none transition
+        	focus:border-primary focus:ring-2 focus:ring-purple-900/40
+      	"
+    	>
+      	<option value="">Seleccione una incidencia activa</option>
+      	{incidenciasDisponibles.map((inc) => (
+        	<option key={inc._id} value={inc._id}>
+          	#{inc._id.slice(-4)} — {inc.titulo} ({inc.estado})
+        	</option>
+      	))}
+    	</select>
 
-          	<ChevronDown
-            	size={18}
-            	className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-secondary"
-          	/>
-        	</div>
+    	<ChevronDown
+      	size={18}
+      	className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-secondary"
+    	/>
+  	</div>
 
-        	{incidenciasDisponibles.length === 0 && (
-          	<p className="text-xs text-textMuted">
-            	No hay incidencias activas (ABIERTAS o EN_PROGRESO) disponibles.
-          	</p>
-        	)}
-      	</div>
+  	{incidenciasDisponibles.length === 0 && (
+    	<p className="text-xs text-textMuted">
+      	No hay incidencias activas (ABIERTAS o EN_PROGRESO) disponibles.
+    	</p>
+  	)}
+	</div>
 
-      	{/* Datos de la incidencia seleccionada (solo lectura) */}
-      	{incidenciaSeleccionada && (
-        	<div className="rounded-lg border border-secondary bg-white/70 px-4 py-3">
-          	<h3 className="mb-2 text-sm font-bold text-primary">
-            	Datos de la incidencia
-          	</h3>
-          	<div className="grid grid-cols-1 gap-x-6 gap-y-1 text-xs sm:grid-cols-2">
-            	<p>
-              	<span className="font-semibold text-textMuted">
-                	Categoría:
-              	</span>{" "}
-              	<span className="font-bold text-textMain">
-                	{incidenciaSeleccionada.categoria || "-"}
-              	</span>
-            	</p>
-            	<p>
-              	<span className="font-semibold text-textMuted">Estado:</span>{" "}
-              	<span className="font-bold text-textMain">
-                	{incidenciaSeleccionada.estado}
-              	</span>
-            	</p>
-            	<p>
-              	<span className="font-semibold text-textMuted">
-                	Prioridad:
-              	</span>{" "}
-              	<span className="font-bold text-textMain">
-                	{incidenciaSeleccionada.prioridad || "-"}
-              	</span>
-            	</p>
-            	<p>
-              	<span className="font-semibold text-textMuted">Espacio:</span>{" "}
-              	<span className="font-bold text-textMain">
-                	{incidenciaSeleccionada.espacio || "-"}
-              	</span>
-            	</p>
-          	</div>
-        	</div>
-      	)}
+	{incidenciaSeleccionada && (
+  	<div className="rounded-lg border border-secondary bg-white/70 px-4 py-3">
+    	<h3 className="mb-2 text-sm font-bold text-primary">
+      	Datos de la incidencia
+    	</h3>
+    	<div className="grid grid-cols-1 gap-x-6 gap-y-1 text-xs sm:grid-cols-2">
+      	<p>
+        	<span className="font-semibold text-textMuted">
+          	Categoría:
+        	</span>{" "}
+        	<span className="font-bold text-textMain">
+          	{incidenciaSeleccionada.categoria || "-"}
+        	</span>
+      	</p>
+      	<p>
+        	<span className="font-semibold text-textMuted">Estado:</span>{" "}
+        	<span className="font-bold text-textMain">
+          	{incidenciaSeleccionada.estado}
+        	</span>
+      	</p>
+      	<p>
+        	<span className="font-semibold text-textMuted">
+          	Prioridad:
+        	</span>{" "}
+        	<span className="font-bold text-textMain">
+          	{incidenciaSeleccionada.prioridad || "-"}
+        	</span>
+      	</p>
+      	<p>
+        	<span className="font-semibold text-textMuted">Espacio:</span>{" "}
+        	<span className="font-bold text-textMain">
+          	{incidenciaSeleccionada.espacio || "-"}
+        	</span>
+      	</p>
+    	</div>
+  	</div>
+	)}
+  </>
+)}
 
       	{/* Descripción del trabajo */}
       	<CampoArea
