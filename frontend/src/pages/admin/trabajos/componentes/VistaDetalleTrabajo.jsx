@@ -79,7 +79,13 @@ function VistaDetalleTrabajo({ trabajo, onVolver }) {
             </div>
           </TarjetaDetalleTrabajo>
 
-          <TarjetaDetalleTrabajo title="Incidencia de Origen">
+          <TarjetaDetalleTrabajo
+            title={
+            detalle.incidenciaOrigen.tipo === "mantenimiento"
+              ? "Plan de Mantenimiento de Origen"
+              : "Incidencia de Origen"
+            }
+          >
             <div
               className="
                 rounded-lg border border-border/70
@@ -108,35 +114,47 @@ function VistaDetalleTrabajo({ trabajo, onVolver }) {
                 </div>
 
                 <button
-                  type="button"
-                  className="
-                    group inline-flex items-center gap-1 text-xs font-bold
-                    text-primary transition-colors duration-200
-                    hover:text-secondary
-                    focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/30
-                    focus-visible:ring-offset-2
-                  "
+                type="button"
+                onClick={() => {
+                if (!detalle.incidenciaOrigen.idDestino) return;
+                if (detalle.incidenciaOrigen.tipo === "mantenimiento") {
+                  window.location.href = `/admin/mantenimiento/${detalle.incidenciaOrigen.idDestino}`;
+                } else {
+                  window.location.href = `/admin/incidencias/${detalle.incidenciaOrigen.idDestino}`;
+                }
+                }}
+                className="
+                group inline-flex items-center gap-1 text-xs font-bold
+                text-primary transition-colors duration-200
+                hover:text-secondary
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/30
+                focus-visible:ring-offset-2
+                "
+              >
+                <span
+                className="
+                  relative
+                  after:absolute after:-bottom-0.5 after:left-0 after:h-[2px]
+                  after:w-0 after:rounded-full after:bg-current
+                  after:transition-all after:duration-200
+                  group-hover:after:w-full
+                "
                 >
-                  <span
-                    className="
-                      relative
-                      after:absolute after:-bottom-0.5 after:left-0 after:h-[2px]
-                      after:w-0 after:rounded-full after:bg-current
-                      after:transition-all after:duration-200
-                      group-hover:after:w-full
-                    "
-                  >
-                    Ver incidencia
-                  </span>
+                {detalle.incidenciaOrigen.tipo === "mantenimiento"
+                  ? "Ver plan"
+                  : "Ver incidencia"}
+                </span>
 
-                  <ExternalLink
-                    size={14}
-                    className="
-                      transition-transform duration-200
-                      group-hover:translate-x-0.5 group-hover:-translate-y-0.5
-                    "
-                  />
-                </button>
+                <ExternalLink
+                size={14}
+                className="
+                  transition-transform duration-200
+                  group-hover:translate-x-0.5 group-hover:-translate-y-0.5
+                "
+                />
+              </button>
+
+
               </div>
             </div>
           </TarjetaDetalleTrabajo>

@@ -152,7 +152,18 @@ const listar = async (query, usuario) => {
   const trabajos = await Trabajo.find(filtro)
 	.populate('proveedorId', 'nombre apellido email proveedorDetalle.especialidad')
 	.populate('incidenciaId', 'titulo categoria estado')
-	.populate('instanciaMantenimientoId', 'fechaProgramada estado')
+	.populate({
+	path: 'instanciaMantenimientoId',
+	select: 'fechaProgramada estado planId',
+	populate: {
+    	path: 'planId',
+    	select: 'tarea edificioId',
+    	populate: {
+        	path: 'edificioId',
+        	select: 'nombre direccion',
+    	},
+	},
+})
 	.populate('historialEstados.creadoPorId', 'nombre apellido tipo')
 	.sort({ createdAt: -1 });
 
@@ -163,7 +174,18 @@ const obtener = async (id, usuario) => {
   const trabajo = await Trabajo.findById(id)
 	.populate('proveedorId', 'nombre apellido email telefono proveedorDetalle')
 	.populate('incidenciaId', 'titulo descripcion categoria estado ocupanteId')
-	.populate('instanciaMantenimientoId', 'fechaProgramada estado planId')
+	.populate({
+	path: 'instanciaMantenimientoId',
+	select: 'fechaProgramada estado planId',
+	populate: {
+    	path: 'planId',
+    	select: 'tarea edificioId',
+    	populate: {
+        	path: 'edificioId',
+        	select: 'nombre direccion',
+    	},
+	},
+})
 	.populate('historialEstados.creadoPorId', 'nombre apellido tipo');
 
   if (!trabajo) throw makeError(404, 'Trabajo no encontrado');
