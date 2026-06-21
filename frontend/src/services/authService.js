@@ -27,6 +27,9 @@ export const loginRequest = async (email, password) => {
   const user = {
 	id: usuario.id,
 	name: `${usuario.nombre} ${usuario.apellido}`,
+	nombre: usuario.nombre,
+	apellido: usuario.apellido,
+	telefono: usuario.telefono || "",
 	email: usuario.email,
 	role: mapTipoToRole(usuario.tipo),   
 	tipo: usuario.tipo,

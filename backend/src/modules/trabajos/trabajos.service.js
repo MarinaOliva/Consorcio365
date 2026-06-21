@@ -355,6 +355,18 @@ if (
 	}
 }
 
+// Side effect: al cancelar un trabajo de mantenimiento, instancia vuelve a PROGRAMADA
+if (
+	estadoNuevo === ESTADOS_TRABAJO.CANCELADO &&
+	trabajo.instanciaMantenimientoId
+) {
+	const instancia = await InstanciaMantenimiento.findById(trabajo.instanciaMantenimientoId);
+	if (instancia && instancia.estado === ESTADOS_INSTANCIA.EN_CURSO) {
+    	instancia.estado = ESTADOS_INSTANCIA.PROGRAMADA;
+    	await instancia.save();
+	}
+}
+
 // Side effects al CERRAR
 if (estadoNuevo === ESTADOS_TRABAJO.CERRADO) {
 	await procesarCierreTrabajo(trabajo, usuario);
@@ -442,7 +454,14 @@ const eliminar = async (id, usuario) => {
 	'Cancelado por administrador'
   );
   await trabajo.save();
-
+  // Si era de mantenimiento y la instancia estaba EN_CURSO, devolverla a PROGRAMADA
+  if (trabajo.instanciaMantenimientoId) {
+	const instancia = await InstanciaMantenimiento.findById(trabajo.instanciaMantenimientoId);
+	if (instancia && instancia.estado === ESTADOS_INSTANCIA.EN_CURSO) {
+  	instancia.estado = ESTADOS_INSTANCIA.PROGRAMADA;
+  	await instancia.save();
+	}
+  }
   return { success: true, message: 'Trabajo cancelado' };
 };
 

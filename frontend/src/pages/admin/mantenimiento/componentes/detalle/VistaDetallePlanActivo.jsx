@@ -469,6 +469,7 @@ function VistaDetallePlanActivo({
   onCerrarInstancia,
   onVerTrabajo,
   onCrearTrabajo,
+  onDesactivarPlan,
 }) {
   return (
 	<section className="mx-auto max-w-[1120px] space-y-5">
@@ -503,6 +504,16 @@ function VistaDetallePlanActivo({
 
     	<HistorialInstancias historial={plan.historialInstancias} />
   	</div>
+	<div className="mt-6 flex justify-center">
+	<Button
+		variant="ghost"
+		type="button"
+		onClick={onDesactivarPlan}
+		className="border border-red-300 bg-red-50 text-red-600 hover:bg-red-100"
+	>
+		Desactivar plan
+	</Button>
+	</div>
 	</section>
   );
 }

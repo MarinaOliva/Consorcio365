@@ -38,6 +38,14 @@ function DetallePlanMantenimiento() {
 	modalExitoActivacionAbierto,
 	cerrarModalExitoActivacion,
 
+	// Desactivar plan
+	modalConfirmacionDesactivacionAbierto,
+	abrirConfirmacionDesactivacion,
+	cerrarConfirmacionDesactivacion,
+	confirmarDesactivacionPlan,
+	modalExitoDesactivacionAbierto,
+	cerrarModalExitoDesactivacion,
+
 	// Crear instancia
 	handleCrearInstancia,
 	modalInstanciaCreadaAbierto,
@@ -151,6 +159,7 @@ function DetallePlanMantenimiento() {
         	onCerrarInstancia={abrirModalCerrarInstancia}
         	onVerTrabajo={handleVerTrabajoAsociado}
         	onCrearTrabajo={abrirModalCrearTrabajo}
+			onDesactivarPlan={abrirConfirmacionDesactivacion}
       	/>
 
       	{/* Modal cerrar instancia */}
@@ -181,6 +190,43 @@ function DetallePlanMantenimiento() {
           	</div>
         	</div>
       	)}
+
+		{/* Modal confirmar desactivación */}
+		{modalConfirmacionDesactivacionAbierto && (
+		<div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+			<div
+			className="absolute inset-0 bg-black/40"
+			onClick={cerrarConfirmacionDesactivacion}
+			/>
+			<div className="relative z-10 w-full max-w-[560px] rounded-2xl border border-white/40 bg-[#cfd8dc] px-8 py-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+			<h2 className="mx-auto max-w-[420px] text-[18px] font-bold leading-tight text-primary">
+				¿Querés desactivar este plan de mantenimiento?
+			</h2>
+			<p className="mt-3 text-sm text-textMain">
+				El plan dejará de generar nuevas instancias. Podés reactivarlo más adelante.
+			</p>
+			<div className="mt-8 flex flex-wrap justify-center gap-6">
+				<button
+				onClick={confirmarDesactivacionPlan}
+				className="rounded-full bg-primary px-6 py-2 text-white"
+				>
+				Desactivar
+				</button>
+				<button
+				onClick={cerrarConfirmacionDesactivacion}
+				className="rounded-full border border-slate-300 px-6 py-2 text-slate-700"
+				>
+				Cancelar
+				</button>
+			</div>
+			</div>
+		</div>
+		)}
+		<SuccessModal
+		isOpen={modalExitoDesactivacionAbierto}
+		onClose={cerrarModalExitoDesactivacion}
+		message="Plan desactivado correctamente"
+		/>
 
       	{/* Modal crear trabajo (reusa el de Trabajos) */}
       	<CrearTrabajoModal
