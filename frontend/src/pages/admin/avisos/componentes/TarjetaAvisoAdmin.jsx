@@ -42,23 +42,23 @@ function TarjetaAvisoAdmin({ aviso, onEditar, onEliminar, mostrarAcciones = true
               size="sm"
               type="button"
               onClick={() => onEditar?.(aviso)}
-            className="gap-2 bg-primary/50"
-          >
-            <Pencil size={14} />
-            Editar
-          </Button>
+              className="gap-2 bg-primary/50"
+            >
+              <Pencil size={14} />
+              Editar
+            </Button>
 
-          <Button
-            variant="danger"
-            size="sm"
-            type="button"
-            onClick={() => onEliminar?.(aviso)}
-            className="gap-2"
-          >
-            <Trash2 size={14} />
-            Eliminar
-          </Button>
-        </div>
+            <Button
+              variant="danger"
+              size="sm"
+              type="button"
+              onClick={() => onEliminar?.(aviso)}
+              className="gap-2"
+            >
+              <Trash2 size={14} />
+              Eliminar
+            </Button>
+          </div>
         )}
       </div>
     </div>
