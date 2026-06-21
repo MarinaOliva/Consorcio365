@@ -184,30 +184,50 @@ function ModalNuevoReclamo({
                 <label className="text-sm font-medium text-textMain">
                   Categoría
                 </label>
-                <CampoSelect
+                <select
                   value={form.categoria}
-                  onChange={(valor) => onChange("categoria", valor)}
-                  options={[
-                    "Plomería",
-                    "Electricidad",
-                    "Calefacción",
-                    "Infraestructura",
-                    "Convivencia",
-                    "Seguridad",
-                    "Otro",
-                  ]}
-                />
+                  onChange={(e) => onChange("categoria", e.target.value)}
+                  className="
+                  w-full rounded-lg border border-border bg-white
+                  px-4 py-3 text-sm text-textMain
+                  outline-none transition
+                  focus:border-primary focus:ring-2 focus:ring-primary/20
+                  "
+                >
+                  <option value="">Seleccione categoría</option>
+                  <option value="plomeria">Plomería</option>
+                  <option value="electricidad">Electricidad</option>
+                  <option value="albanileria">Albañilería</option>
+                  <option value="ascensores">Ascensores</option>
+                  <option value="cerrajeria">Cerrajería</option>
+                  <option value="limpieza">Limpieza</option>
+                  <option value="jardineria">Jardinería</option>
+                  <option value="otro">Otro</option>
+                </select>
+
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-textMain">
                   Prioridad
                 </label>
-                <CampoSelect
+                <select
                   value={form.prioridad}
-                  onChange={(valor) => onChange("prioridad", valor)}
-                  options={["Alta", "Media", "Baja"]}
-                />
+                  onChange={(e) => onChange("prioridad", e.target.value)}
+                  className="
+                  w-full rounded-lg border border-border bg-white
+                  px-4 py-3 text-sm text-textMain
+                  outline-none transition
+                  focus:border-primary focus:ring-2 focus:ring-primary/20
+                  "
+                >
+                  <option value="">Seleccione prioridad</option>
+                  <option value="alta">Alta</option>
+                  <option value="media">Media</option>
+                  <option value="baja">Baja</option>
+                </select>
+
+
               </div>
             </div>
 

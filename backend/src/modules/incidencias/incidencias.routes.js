@@ -9,7 +9,7 @@ const {upload} = require('../../utils/upload');
 router.use(auth);
 
 // Crear: ocupantes
-router.post('/', roles('ocupante'), ctrl.crear);
+router.post('/', roles('ocupante', 'administrador'), ctrl.crear);
 
 // Listar y obtener
 router.get('/', ctrl.listar);

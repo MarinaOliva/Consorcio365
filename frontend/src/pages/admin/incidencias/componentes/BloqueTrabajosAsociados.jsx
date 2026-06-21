@@ -13,7 +13,13 @@ function BloqueTrabajosAsociados({ trabajos = [] }) {
       }
     >
       <div className="space-y-3">
+        {trabajos.length === 0 && (
+         <p className="text-sm text-textMuted">
+          Esta incidencia no tiene trabajos asociados todavía.
+        </p>
+        )}
         {trabajos.map((trabajo) => (
+
           <div
             key={trabajo.id}
             className="

@@ -43,11 +43,12 @@ function FiltrosIncidencias({
           className={`${CLASE_CAMPO_FILTRO} sm:w-[140px]`}
         >
           <option value="Todos">Estado: Todos</option>
-          <option value="Abierta">Estado: Abierta</option>
-          <option value="Asignado">Estado: Asignado</option>
-          <option value="En trabajo">Estado: En trabajo</option>
-          <option value="Resuelta">Estado: Resuelta</option>
-          <option value="Cerrada">Estado: Cerrada</option>
+          <option value="ABIERTA">Estado: Abierta</option>
+          <option value="EN_PROGRESO">Estado: En progreso</option>
+          <option value="RESUELTA">Estado: Resuelta</option>
+          <option value="CERRADA">Estado: Cerrada</option>
+          <option value="RECHAZADA">Estado: Rechazada</option>
+          <option value="CANCELADA">Estado: Cancelada</option>
         </select>
 
         <select

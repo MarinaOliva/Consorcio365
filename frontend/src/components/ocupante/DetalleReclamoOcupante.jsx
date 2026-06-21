@@ -72,7 +72,7 @@ function DetalleReclamoOcupante({ reclamo, onVolver }) {
             </div>
 
             <div className="grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-4">
-              <ItemInfo label="ID" value={`#${reclamo.id}`} />
+              <ItemInfo label="ID" value={`#${String(reclamo.id).slice(-4)}`} /> 
               <ItemInfo label="Fecha" value={reclamo.fecha} />
               <ItemInfo label="Categoría" value={reclamo.categoria} />
               <div>
@@ -105,23 +105,50 @@ function DetalleReclamoOcupante({ reclamo, onVolver }) {
 
           <TarjetaSeccion title="Adjuntos">
             {reclamo.archivos?.length > 0 ? (
-              <div className="space-y-3">
-                {reclamo.archivos.map((archivo, index) => (
-                  <div
-                    key={`${archivo.name || "archivo"}-${index}`}
-                    className="flex items-center gap-3 rounded-lg border border-border/70 bg-surfaceSoft/60 px-4 py-3"
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {reclamo.archivos.map((archivo, index) => {
+                const url = archivo.url || archivo;
+                const label = archivo.name || `Adjunto ${index + 1}`;
+
+                if (!url || typeof url !== "string") {
+                  return (
+                    <div
+                      key={`adjunto-${index}`}
+                      className="flex items-center gap-3 rounded-lg border border-border/70 bg-surfaceSoft/60 px-4 py-3"
+                    >
+                      <Paperclip size={16} className="text-primary" />
+                      <span className="truncate text-sm font-medium text-textMain">
+                        {label}
+                      </span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <button
+                    key={`adjunto-${index}`}
+                    type="button"
+                    onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
+                    className="group block overflow-hidden rounded-lg border border-border/70 bg-white text-left shadow-sm transition hover:shadow-md"
                   >
-                    <Paperclip size={16} className="text-primary" />
-                    <span className="truncate text-sm font-medium text-textMain">
-                      {archivo.name || `Adjunto ${index + 1}`}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                    <div
+                      className="h-32 w-full bg-cover bg-center"
+                      style={{ backgroundImage: `url(${url})` }}
+                    />
+                    <div className="flex items-center gap-2 px-3 py-2">
+                      <Paperclip size={14} className="text-primary" />
+                      <span className="truncate text-xs font-medium text-textMain group-hover:text-primary">
+                        {label}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
             ) : (
-              <p className="text-sm text-textMuted">
-                No se adjuntaron pruebas en este reclamo.
-              </p>
+            <p className="text-sm text-textMuted">
+              No se adjuntaron pruebas en este reclamo.
+            </p>
             )}
           </TarjetaSeccion>
         </div>
