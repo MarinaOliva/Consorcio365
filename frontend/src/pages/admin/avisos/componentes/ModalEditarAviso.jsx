@@ -274,7 +274,6 @@ function ModalEditarAviso({
             variant="neutral"
             type="button"
             onClick={onClose}
-            className="border-red-300 text-red-500 hover:border-red-400 hover:bg-red-50"
           >
             Cancelar
           </Button>

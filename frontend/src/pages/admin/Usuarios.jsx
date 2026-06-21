@@ -1,3 +1,5 @@
+import { mostrarToastError } from "../../utils/toasts";
+
 import { useEffect, useMemo, useState } from "react";
 import NuevoUsuarioModal from "../../components/admin/NuevoUsuarioModal";
 
@@ -8,6 +10,7 @@ import AdminUsersToolbar from "../../components/admin/AdminUsersToolbar";
 import AdminUsersTable from "../../components/admin/AdminUsersTable";
 import EditEntityModal from "../../components/admin/EditEntityModal";
 import SuccessModal from "../../components/shared/SuccessModal";
+import ModalConfirmacion from "../../components/shared/ModalConfirmacion";
 
 import {
   getUsuarios,
@@ -26,6 +29,9 @@ function UsuariosAdmin() {
   const [unidades, setUnidades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [isConfirmarDesactivacionOpen, setIsConfirmarDesactivacionOpen] = useState(false);
+  const [usuarioADesactivar, setUsuarioADesactivar] = useState(null);
 
   // Modal de edición
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -140,32 +146,48 @@ const handleView = (row) => {
 };
 
   // Soft delete: pasa a INACTIVO
-const handleDelete = async (row) => {
-  const confirmar = window.confirm(
-	`¿Desactivar a ${row.displayName || row.nombre}?`
-  );
-  if (!confirmar) return;
-  try {
-	await deleteUsuario(row.id);
-	setUsers((prev) =>
-  	prev.map((u) =>
-    	u.id === row.id ? { ...u, estado: "INACTIVO" } : u
-  	)
-	);
-	setSuccessMessage("Usuario desactivado con éxito");
-	setIsSuccessOpen(true);
+  const handleDelete = (row) => {
+    setUsuarioADesactivar(row);
+    setIsConfirmarDesactivacionOpen(true);
+  };
+
+  const handleCancelarDesactivacion = () => {
+    setUsuarioADesactivar(null);
+    setIsConfirmarDesactivacionOpen(false);
+  };
+
+  const handleConfirmarDesactivacion = async () => {
+    if (!usuarioADesactivar) return;
+
+    try {
+      await deleteUsuario(usuarioADesactivar.id);
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === usuarioADesactivar.id ? { ...u, estado: "INACTIVO" } : u,
+        ),
+      );
+
+      setIsConfirmarDesactivacionOpen(false);
+      setUsuarioADesactivar(null);
+
+      setSuccessMessage("Usuario desactivado con éxito");
+      setIsSuccessOpen(true);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
         err?.message ||
         "No se pudo desactivar el usuario";
 
-      alert(msg);
+      setIsConfirmarDesactivacionOpen(false);
+      setUsuarioADesactivar(null);
+
+      mostrarToastError(msg);
     }
   };
 
   // Guardar edición (PUT al back)
-const handleSave = async (updatedEntity) => {
+  const handleSave = async (updatedEntity) => {
   try {
 	const payload = { ...updatedEntity };
 
@@ -227,7 +249,7 @@ const handleSave = async (updatedEntity) => {
     	}
   	} catch (relacionErr) {
     	console.error("[handleSave] error relación:", relacionErr);
-    	alert("El usuario se guardó pero hubo un problema actualizando la unidad.");
+    	mostrarToastError("El usuario se guardó pero hubo un problema actualizando la unidad.");
   	}
 	}
 
@@ -251,7 +273,7 @@ const handleSave = async (updatedEntity) => {
   	err?.response?.data?.message ||
   	err?.message ||
   	"No se pudo guardar el usuario";
-	alert(msg);
+	 mostrarToastError(msg);
   }
 };
 
@@ -263,7 +285,7 @@ const handleSave = async (updatedEntity) => {
 
  // Alta del nuevo usuario
   
-const handleCreateUser = async (nuevoUsuario) => {
+  const handleCreateUser = async (nuevoUsuario) => {
   try {
 	const payload = { ...nuevoUsuario };
 	const passwordTemporal = payload.passwordTemporal || "Temporal123!";
@@ -302,7 +324,7 @@ const handleCreateUser = async (nuevoUsuario) => {
   	err?.response?.data?.message ||
   	err?.message ||
   	"No se pudo crear el usuario";
-	alert(msg);
+	 mostrarToastError(msg);
   };
 };
 
@@ -359,9 +381,7 @@ const handleCreateUser = async (nuevoUsuario) => {
 
         <SectionCard title="Lista de usuarios">
           {loading && (
-            <p className="py-4 text-sm text-textMuted">
-              Cargando usuarios...
-            </p>
+            <p className="py-4 text-sm text-textMuted">Cargando usuarios...</p>
           )}
 
           {error && (
@@ -396,16 +416,41 @@ const handleCreateUser = async (nuevoUsuario) => {
         onClose={() => setIsSuccessOpen(false)}
         message={successMessage}
       />
-	    
+
+      <ModalConfirmacion
+        isOpen={isConfirmarDesactivacionOpen}
+        title="Confirmar desactivación"
+        message={
+          usuarioADesactivar
+          ? `¿Querés desactivar a ${usuarioADesactivar.displayName || usuarioADesactivar.nombre}?`
+          : "¿Querés continuar con esta acción?"
+        }
+        confirmLabel="Desactivar usuario"
+        cancelLabel="Cancelar"
+        variant="danger"
+        onConfirm={handleConfirmarDesactivacion}
+        onClose={handleCancelarDesactivacion}
+        details={
+          usuarioADesactivar
+          ? [
+              {
+                label: "Usuario",
+                value: usuarioADesactivar.displayName || "-",
+              },
+              { label: "Email", value: usuarioADesactivar.email || "-" },
+              { label: "Rol", value: usuarioADesactivar.tipo || "-" },
+              { label: "Estado", value: usuarioADesactivar.estado || "-" },
+            ]
+          : []
+        }
+      />
       {isCreateModalOpen && (
         <NuevoUsuarioModal
           onClose={handleCloseCreateModal}
           onCreate={handleCreateUser}
         />
       )}
-
     </ContenedorPanelPorRol>
-    
   );
 }
 

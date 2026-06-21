@@ -14,16 +14,15 @@ import {
 
 import { getIncidencias } from "../services/incidenciasService";
 
-import {
-  estaDentroDelRango,
-  normalizarTexto,
-} from "../pages/admin/trabajos/utils/fechas";
+import {estaDentroDelRango, normalizarTexto} from "../pages/admin/trabajos/utils/fechas";
 
 import {
-  TRABAJO_DRAFT_INICIAL,
   clonarObjeto,
   obtenerCodigoTrabajo,
 } from "../pages/admin/trabajos/utils/trabajos";
+
+import { mostrarToastError } from "../utils/toasts";
+
 
 // Adaptador
 function adaptarTrabajoDelBack(trabajoBack) {
@@ -327,7 +326,7 @@ export function useTrabajosAdmin() {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo guardar el cambio";
-  	alert(msg);
+  	 mostrarToastError(msg);
 	}
   };
 
@@ -352,11 +351,11 @@ export function useTrabajosAdmin() {
   const handleCrearTrabajo = async () => {
 	// Validaciones mínimas
 	if (!trabajoDraft.incidenciaId) {
-  	alert("Seleccioná una incidencia.");
+  	mostrarToastError("Seleccioná una incidencia.");
   	return;
 	}
 	if (!trabajoDraft.descripcion?.trim()) {
-  	alert("Ingresá la descripción del trabajo.");
+  	mostrarToastError("Ingresá la descripción del trabajo.");
   	return;
 	}
 
@@ -383,7 +382,7 @@ export function useTrabajosAdmin() {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo crear el trabajo";
-  	alert(msg);
+  	 mostrarToastError(msg);
 	}
   };
 
@@ -435,7 +434,7 @@ export function useTrabajosAdmin() {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo cancelar el trabajo";
-  	alert(msg);
+  	 mostrarToastError(msg);
 	}
   };
 
@@ -511,4 +510,3 @@ export function useTrabajosAdmin() {
 	
   };
 }
-
