@@ -29,10 +29,10 @@ const obtener = async (req, res, next) => {
 
 const actualizar = async (req, res, next) => {
   try {
-    const result = await usuariosService.actualizar(req.params.id, req.body);
-    return res.json(result);
+	const result = await usuariosService.actualizar(req.params.id, req.body, req.usuario);
+	return res.json(result);
   } catch (err) {
-    next(err);
+	next(err);
   }
 };
 
