@@ -1,5 +1,3 @@
-// src/configuracion/configuracionPanelPorRol.js
-
 import { adminMenuItems } from "../data/adminDashboardData";
 import { ocupanteMenuItems } from "../data/ocupanteDashboardData";
 import { proveedorMenuItems } from "../data/proveedorDashboardData";

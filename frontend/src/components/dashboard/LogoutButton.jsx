@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
+import {LogOut} from "lucide-react"
 
 function LogoutButton() {
   const { logout } = useAuth();
@@ -23,7 +24,7 @@ function LogoutButton() {
       "
     >
       SALIR
-      <span className="ml-2 text-sm">↪</span>
+      <LogOut size={18} className="ml-2 text-sm" />
     </Button>
   );
 }

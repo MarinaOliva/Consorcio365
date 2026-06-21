@@ -1,5 +1,3 @@
-// src/components/shared/PaginaSimpleConLayout.jsx
-
 import ContenedorPanelPorRol from "../dashboard/ContenedorPanelPorRol";
 import SectionCard from "../dashboard/SectionCard";
 
