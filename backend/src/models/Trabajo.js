@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { ESTADOS_TRABAJO, TIPOS_GASTO } = require('../constants/estados');
+const { ESTADOS_TRABAJO } = require('../constants/estados');
 
 const historialEstadoSchema = new mongoose.Schema({
   estadoAnterior: { type: String, required: true },
@@ -13,18 +13,6 @@ const historialEstadoSchema = new mongoose.Schema({
   fecha: { type: Date, default: Date.now }
 }, { _id: true });
 
-// El gasto se genera automáticamente al cerrar el trabajo y se embebe acá para trazabilidad inmediata
-const gastoSchema = new mongoose.Schema({
-  monto:      { type: Number, required: true, min: 0 },
-  concepto:   { type: String, required: true, trim: true },
-  tipo: {
-    type: String,
-    enum: Object.values(TIPOS_GASTO),
-    required: true
-  },
-  comprobante: { type: String, default: null },
-  fecha:       { type: Date, default: Date.now }
-}, { _id: true });
 
 const trabajoSchema = new mongoose.Schema({
   // Origen: uno solo de los dos tiene valor, el otro es null
@@ -54,7 +42,6 @@ const trabajoSchema = new mongoose.Schema({
   },
   // Embebidos
   historialEstados: [historialEstadoSchema],
-  gasto:            { type: gastoSchema, default: null }
 }, {
   timestamps: true
 });
