@@ -66,7 +66,10 @@ function adaptarTrabajoDelBack(trabajoBack) {
 	historialEstados: trabajoBack.historialEstados || [],
 
 	categoria: incidencia?.categoria || "",
-	edificio: incidencia?.edificioId?.nombre || "",
+	edificio:
+	incidencia?.edificioId?.nombre ||
+	instancia?.planId?.edificioId?.nombre ||
+	"",
 	unidad: incidencia?.espacio || "",
 	piso: "",
 
@@ -308,7 +311,15 @@ export function useTrabajosAdmin() {
 
   	if (huboCambios) {
     	await cargarTrabajos();
-  	}
+	}
+	// Volver a la vista de detalle
+	setTrabajoEnEdicion(null);
+	setTrabajoEditado(null);
+	setSearchParams((prev) => {
+		const next = new URLSearchParams(prev);
+		next.set("detalle", trabajoEditado.id);
+		return next;
+});
 
   	setIsCambiosGuardadosOpen(true);
 	} catch (err) {

@@ -106,17 +106,29 @@ export function obtenerDetalleTrabajo(trabajo) {
     ? new Date(trabajo.fechaISO).toLocaleDateString("es-AR")
     : "";
 
-  const origenIncidencia = trabajo.incidenciaId
-	? {
-    	numero: trabajo._raw?.incidenciaId?._id?.slice(-4) || "----",
-    	titulo: trabajo._raw?.incidenciaId?.titulo || "Sin título",
-    	fecha: fechaCreado,
-  	}
-	: {
-    	numero: trabajo._raw?.instanciaMantenimientoId?._id?.slice(-4) || "----",
-    	titulo: "Instancia de mantenimiento",
-    	fecha: fechaCreado,
-  	};
+  const esDeIncidencia = !!trabajo.incidenciaId;
+
+  const origenIncidencia = esDeIncidencia
+    ? {
+        numero: trabajo._raw?.incidenciaId?._id?.slice(-4) || "----",
+        titulo: trabajo._raw?.incidenciaId?.titulo || "Sin título",
+        fecha: fechaCreado,
+        tipo: "incidencia",
+        idDestino: trabajo._raw?.incidenciaId?._id || null,
+      }
+    : {
+        numero: trabajo._raw?.instanciaMantenimientoId?._id?.slice(-4) || "----",
+        titulo:
+          trabajo._raw?.instanciaMantenimientoId?.planId?.tarea ||
+          "Plan de mantenimiento",
+        fecha: fechaCreado,
+        tipo: "mantenimiento",
+        idDestino:
+          trabajo._raw?.instanciaMantenimientoId?.planId?._id ||
+          trabajo._raw?.instanciaMantenimientoId?.planId ||
+          null,
+      };
+
 
   const evidenciasReales = (trabajo.evidencias || []).map((url, index) => {
 	const esPdf = /\.pdf(\?|$)/i.test(url);
