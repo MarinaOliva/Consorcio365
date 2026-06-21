@@ -30,10 +30,11 @@ function ToolbarTrabajos({
           className={CLASE_CAMPO_FILTRO}
         >
           <option value="Todos">Estado: Todos</option>
-          <option value="Asignado">Asignado</option>
-          <option value="En progreso">En progreso</option>
-          <option value="Finalizado">Finalizado</option>
-          <option value="Cerrado">Cerrado</option>
+          <option value="CREADO">Creado</option>
+          <option value="ASIGNADO">Asignado</option>
+          <option value="EN_EJECUCION">En ejecución</option>
+          <option value="FINALIZADO">Finalizado</option>
+          <option value="CERRADO">Cerrado</option>
         </select>
 
         <select

@@ -1,19 +1,22 @@
 import { Pencil } from "lucide-react";
 
-const ESTADOS_TRABAJO = ["Asignado", "En progreso", "Finalizado", "Cerrado"];
+const ESTADOS_TRABAJO = ["CREADO", "ASIGNADO", "EN_EJECUCION", "FINALIZADO", "CERRADO"];
 
 function EstadoTrabajoSelect({ value, onChange }) {
   const normalizado = String(value ?? "").toLowerCase().trim();
 
-  const estilos = {
+   const estilos = {
+    creado:
+      "border-purple-400 bg-purple-50 text-purple-600 hover:bg-purple-100",
     asignado:
       "border-yellow-400 bg-yellow-50 text-yellow-600 hover:bg-yellow-100",
-    "en progreso":
+    en_ejecucion:
       "border-blue-400 bg-blue-50 text-blue-500 hover:bg-blue-100",
     finalizado:
       "border-emerald-400 bg-emerald-50 text-emerald-600 hover:bg-emerald-100",
     cerrado: "border-slate-400 bg-slate-100 text-slate-500 hover:bg-slate-200",
-  };
+    };
+
 
   return (
     <div className="inline-flex items-center gap-2">

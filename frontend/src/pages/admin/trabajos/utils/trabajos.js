@@ -73,103 +73,123 @@ export function sumarDiasAFechaArgentina(fecha, dias) {
 
 export function obtenerDetalleTrabajo(trabajo) {
   const codigoTrabajo = obtenerCodigoTrabajo(trabajo);
-  const fechaInicio = trabajo.fecha;
-  const fechaFinalizacion =
-    trabajo.fechaFinalizacion || sumarDiasAFechaArgentina(fechaInicio, 1);
+
+  const historialReal = trabajo.historialEstados || [];
+
+  // Fecha de inicio = cuando pasó a EN_EJECUCION
+  const itemEnEjecucion = historialReal.find(
+    (h) => h.estadoNuevo === "EN_EJECUCION"
+  );
+  const fechaInicio = itemEnEjecucion
+    ? new Date(itemEnEjecucion.fecha).toLocaleDateString("es-AR")
+    : "—";
+
+  // Fecha de finalización
+  const itemFinalizado = historialReal.find(
+    (h) => h.estadoNuevo === "FINALIZADO"
+  );
+  const fechaFinalizacion = itemFinalizado
+    ? new Date(itemFinalizado.fecha).toLocaleDateString("es-AR")
+    : "—";
+
+  // Duración
+  const duracion = (() => {
+    if (!itemEnEjecucion || !itemFinalizado) return "—";
+    const inicio = new Date(itemEnEjecucion.fecha);
+    const fin = new Date(itemFinalizado.fecha);
+    const dias = Math.max(1, Math.round((fin - inicio) / (1000 * 60 * 60 * 24)));
+    return dias === 1 ? "1 día" : `${dias} días`;
+  })();
+
+  // Fecha de creación
+  const fechaCreado = trabajo.fechaISO
+    ? new Date(trabajo.fechaISO).toLocaleDateString("es-AR")
+    : "";
+
+  const origenIncidencia = trabajo.incidenciaId
+	? {
+    	numero: trabajo._raw?.incidenciaId?._id?.slice(-4) || "----",
+    	titulo: trabajo._raw?.incidenciaId?.titulo || "Sin título",
+    	fecha: fechaCreado,
+  	}
+	: {
+    	numero: trabajo._raw?.instanciaMantenimientoId?._id?.slice(-4) || "----",
+    	titulo: "Instancia de mantenimiento",
+    	fecha: fechaCreado,
+  	};
+
+  const evidenciasReales = (trabajo.evidencias || []).map((url, index) => {
+	const esPdf = /\.pdf(\?|$)/i.test(url);
+	return {
+  	id: index + 1,
+  	tipo: esPdf ? "pdf" : "imagen",
+  	titulo: esPdf ? `Comprobante ${index + 1}.pdf` : `Evidencia ${index + 1}`,
+  	url,
+	};
+  });
+
+  const historialAdaptado = historialReal.map((h, index) => ({
+	id: h._id || index,
+	tipo: mapearEstadoATipoHistorial(h.estadoNuevo),
+	titulo: mapearEstadoATituloHistorial(h.estadoNuevo, h.estadoAnterior),
+	fecha: h.fecha ? new Date(h.fecha).toLocaleDateString("es-AR") : "",
+	hora: h.fecha
+  	? new Date(h.fecha).toLocaleTimeString("es-AR", {
+      	hour: "2-digit",
+      	minute: "2-digit",
+    	}) + " hs"
+  	: "",
+	usuario: h.creadoPorId?.nombre
+  	? `${h.creadoPorId.nombre} ${h.creadoPorId.apellido || ""}`.trim()
+  	: "Sistema",
+	descripcion: h.observacion || "",
+  }));
 
   return {
-    ...trabajo,
-    codigoTrabajo,
-    titulo: trabajo.incidencia || "Trabajo sin título",
-    descripcion:
-      trabajo.descripcion ||
-      "Reparación completa del trabajo solicitado. Incluye diagnóstico, revisión de componentes afectados, ejecución de la tarea y verificación final del servicio.",
-    edificio: trabajo.edificio || "Torre Norte",
-    unidad: trabajo.unidad || "5B",
-    presupuesto: formatearMonto(trabajo.presupuesto || 0),
-    fechaInicio,
-    fechaFinalizacion,
-    duracion: trabajo.duracion || "2 días",
-    estado: trabajo.estado,
-    proveedor: trabajo.proveedor || "Sin proveedor asignado",
-    incidenciaOrigen: {
-      numero: trabajo.numeroIncidencia || "1238",
-      titulo:
-        trabajo.origen === "Mantenimiento"
-          ? "Mantenimiento programado"
-          : "Falta de presión de agua en edificio",
-      fecha: trabajo.fecha,
-    },
-    historial: [
-      {
-        id: 1,
-        tipo: "creado",
-        titulo: "Trabajo creado",
-        fecha: trabajo.fecha,
-        hora: "10:30 hs",
-        usuario: "Carlos Mendoza (Admin)",
-        descripcion: `Trabajo creado desde la ${
-          trabajo.origen?.toLowerCase() || "incidencia"
-        } #${trabajo.numeroIncidencia || "-"}.`,
-      },
-      {
-        id: 2,
-        tipo: "asignado",
-        titulo: "Proveedor asignado",
-        fecha: trabajo.fecha,
-        hora: "14:15 hs",
-        usuario: "Carlos Mendoza (Admin)",
-        descripcion: `Se asignó el trabajo a ${
-          trabajo.proveedor || "un proveedor"
-        } con presupuesto aprobado.`,
-      },
-      {
-        id: 3,
-        tipo: "iniciado",
-        titulo: "Trabajo iniciado",
-        fecha: fechaInicio,
-        hora: "17:00 hs",
-        usuario: trabajo.proveedor || "Proveedor",
-        descripcion:
-          "El proveedor confirmó el inicio de los trabajos en el sitio.",
-      },
-      {
-        id: 4,
-        tipo: "finalizado",
-        titulo: "Trabajo finalizado",
-        fecha: fechaFinalizacion,
-        hora: "13:45 hs",
-        usuario: trabajo.proveedor || "Proveedor",
-        descripcion:
-          "El proveedor marcó el trabajo como finalizado y subió las evidencias correspondientes.",
-      },
-    ],
-    evidencias: [
-      {
-        id: 1,
-        tipo: "imagen",
-        titulo: "Evidencia 1",
-        className: "from-cyan-900 via-slate-700 to-emerald-400",
-      },
-      {
-        id: 2,
-        tipo: "imagen",
-        titulo: "Evidencia 2",
-        className: "from-slate-900 via-cyan-700 to-blue-300",
-      },
-      {
-        id: 3,
-        tipo: "imagen",
-        titulo: "Evidencia 3",
-        className: "from-yellow-300 via-slate-500 to-stone-700",
-      },
-      {
-        id: 4,
-        tipo: "pdf",
-        titulo: "Informe_Tecnico.pdf",
-      },
-    ],
+	...trabajo,
+	codigoTrabajo,
+	titulo: trabajo.incidencia || trabajo.descripcion || "Trabajo",
+	descripcion: trabajo.descripcion || "Sin descripción",
+	edificio: trabajo.edificio || "—",
+	unidad: trabajo.unidad || "—",
+	presupuesto: formatearMonto(trabajo.presupuesto || 0),
+	fechaInicio,
+	fechaFinalizacion,
+	duracion,
+	estado: trabajo.estado,
+	proveedor: trabajo.proveedor || "Sin proveedor asignado",
+	incidenciaOrigen: origenIncidencia,
+	historial: historialAdaptado,
+	evidencias: evidenciasReales,
   };
+}
+
+
+// Helpers para el historial
+function mapearEstadoATipoHistorial(estadoNuevo) {
+  const mapa = {
+	CREADO: "creado",
+	ASIGNADO: "asignado",
+	EN_EJECUCION: "iniciado",
+	FINALIZADO: "finalizado",
+	CERRADO: "finalizado",
+	CANCELADO: "finalizado",
+  };
+  return mapa[estadoNuevo] || "creado";
+}
+
+function mapearEstadoATituloHistorial(estadoNuevo, estadoAnterior) {
+  if (estadoAnterior === estadoNuevo) return "Trabajo actualizado";
+
+  const mapa = {
+	CREADO: "Trabajo creado",
+	ASIGNADO: "Proveedor asignado",
+	EN_EJECUCION: "Trabajo iniciado",
+	FINALIZADO: "Trabajo finalizado",
+	CERRADO: "Trabajo cerrado",
+	CANCELADO: "Trabajo cancelado",
+  };
+  return mapa[estadoNuevo] || estadoNuevo;
 }
 
 export function obtenerColorHistorialTrabajo(tipo) {

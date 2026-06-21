@@ -21,6 +21,7 @@ function Trabajos() {
     proveedoresDisponibles,
     trabajosFiltrados,
     totalTrabajos,
+    proveedoresActivos,
 
     trabajoSeleccionado,
     trabajoEnEdicion,
@@ -40,7 +41,9 @@ function Trabajos() {
     handleVolverListado,
     handleEditarTrabajo,
     handleChangeEstadoTrabajo,
+    handleChangeMontoTrabajo,
     handleGuardarCambiosTrabajo,
+    handleChangeProveedorTrabajo,
 
     handleNuevoTrabajo,
     handleCerrarCrearTrabajo,
@@ -73,6 +76,9 @@ function Trabajos() {
           trabajo={trabajoEditado}
           estadoEditable={trabajoEditado.estado}
           onEstadoChange={handleChangeEstadoTrabajo}
+          onMontoChange={handleChangeMontoTrabajo}
+          onProveedorChange={handleChangeProveedorTrabajo}
+          proveedoresDisponibles={proveedoresActivos}
           onVolver={() => {
             handleVolverListado();
           }}

@@ -158,6 +158,7 @@ const listar = async (query, usuario) => {
 	.populate('proveedorId', 'nombre apellido email proveedorDetalle.especialidad')
 	.populate('incidenciaId', 'titulo categoria estado')
 	.populate('instanciaMantenimientoId', 'fechaProgramada estado')
+	.populate('historialEstados.creadoPorId', 'nombre apellido tipo')
 	.sort({ createdAt: -1 });
 
   return { success: true, total: trabajos.length, trabajos };

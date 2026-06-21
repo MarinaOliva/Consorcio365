@@ -1,24 +1,83 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { trabajosAdminMock } from "../data/trabajosAdminData";
+import {getUsuarios} from "../services/usersService";
+
 import {
-  TRABAJO_DRAFT_INICIAL,
-  clonarObjeto,
-  convertirMontoANumero,
-  formatearFechaInput,
-  obtenerCodigoTrabajo,
-} from "../pages/admin/trabajos/utils/trabajos";
+  getTrabajos,
+  cambiarEstadoTrabajo,
+  deleteTrabajo,
+  updateTrabajo,
+  asignarProveedor,
+} from "../services/trabajosService";
+
 import {
   estaDentroDelRango,
   normalizarTexto,
 } from "../pages/admin/trabajos/utils/fechas";
 
+import {
+  TRABAJO_DRAFT_INICIAL,
+  clonarObjeto,
+  obtenerCodigoTrabajo,
+} from "../pages/admin/trabajos/utils/trabajos";
+
+// Adaptador
+function adaptarTrabajoDelBack(trabajoBack) {
+  const incidencia = trabajoBack.incidenciaId;
+  const instancia = trabajoBack.instanciaMantenimientoId;
+  const proveedor = trabajoBack.proveedorId;
+
+  const tituloMostrado = incidencia?.titulo || trabajoBack.descripcion || "Trabajo de mantenimiento";
+  const origen = incidencia ? "Incidencia" : "Mantenimiento";
+
+  return {
+	
+	id: trabajoBack._id,
+	_id: trabajoBack._id,
+
+	incidencia: tituloMostrado,
+	numeroIncidencia: incidencia?._id?.slice(-4) || instancia?._id?.slice(-4) || "----",
+	origen,
+
+	estado: trabajoBack.estado,
+
+	proveedor: proveedor
+  	? `${proveedor.nombre || ""} ${proveedor.apellido || ""}`.trim()
+  	: "Sin proveedor asignado",
+	proveedorId: proveedor?._id || null,
+
+	presupuesto: trabajoBack.monto || 0,
+	fecha: trabajoBack.createdAt
+  	? new Date(trabajoBack.createdAt).toLocaleDateString("es-AR")
+  	: "",
+	fechaISO: trabajoBack.createdAt,
+
+	descripcion: trabajoBack.descripcion || "",
+
+	incidenciaId: incidencia?._id || null,
+	instanciaMantenimientoId: instancia?._id || null,
+
+	evidencias: trabajoBack.evidencias || [],
+
+	historialEstados: trabajoBack.historialEstados || [],
+
+	categoria: incidencia?.categoria || "",
+	edificio: incidencia?.edificioId?.nombre || "",
+	unidad: incidencia?.espacio || "",
+	piso: "",
+
+	_raw: trabajoBack,
+  };
+}
+
 export function useTrabajosAdmin() {
   const [searchParams, setSearchParams] = useSearchParams();
   const detalleTrabajoId = searchParams.get("detalle");
 
-  const [trabajos, setTrabajos] = useState(trabajosAdminMock);
+  const [trabajos, setTrabajos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [busqueda, setBusqueda] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("Todos");
@@ -34,268 +93,360 @@ export function useTrabajosAdmin() {
 
   const [trabajoDraft, setTrabajoDraft] = useState(TRABAJO_DRAFT_INICIAL);
 
-  const [isConfirmarEliminacionOpen, setIsConfirmarEliminacionOpen] =
-    useState(false);
+  const [isConfirmarEliminacionOpen, setIsConfirmarEliminacionOpen] = useState(false);
   const [trabajoAEliminar, setTrabajoAEliminar] = useState(null);
-  const [isEliminacionSuccessOpen, setIsEliminacionSuccessOpen] =
-    useState(false);
+  const [isEliminacionSuccessOpen, setIsEliminacionSuccessOpen] = useState(false);
+
+  const [proveedoresActivos, setProveedoresActivos] = useState([]);
+
+  const cargarTrabajos = async () => {
+	try {
+  	setLoading(true);
+  	setError("");
+  	const data = await getTrabajos();
+  	const adaptados = data.map(adaptarTrabajoDelBack);
+  	setTrabajos(adaptados);
+	} catch (err) {
+  	const msg =
+    	err?.response?.data?.message ||
+    	err?.message ||
+    	"No se pudieron cargar los trabajos";
+  	setError(msg);
+	} finally {
+  	setLoading(false);
+	}
+  };
+	
+  const cargarProveedores = async () => {
+	try {
+  	const data = await getUsuarios({ tipo: "proveedor", estado: "ACTIVO" });
+  	setProveedoresActivos(data || []);
+	} catch (err) {
+  	console.error("Error al cargar proveedores:", err);
+	}
+  };
+
+
+
+  useEffect(() => {
+	cargarTrabajos();
+	cargarProveedores();
+  }, []);
+
+
+  // Trabajo seleccionado
 
   const trabajoPorParametro = useMemo(() => {
-    if (!detalleTrabajoId) return null;
+	if (!detalleTrabajoId) return null;
 
-    return (
-      trabajos.find((item) => String(item.id) === String(detalleTrabajoId)) ||
-      null
-    );
+	return (
+  	trabajos.find((item) => String(item.id) === String(detalleTrabajoId)) ||
+  	null
+	);
   }, [detalleTrabajoId, trabajos]);
 
   const trabajoSeleccionado = trabajoPorParametro
-    ? {
-        ...trabajoPorParametro,
-        codigoTrabajo: obtenerCodigoTrabajo(trabajoPorParametro),
-      }
-    : null;
+	? {
+    	...trabajoPorParametro,
+    	codigoTrabajo: obtenerCodigoTrabajo(trabajoPorParametro),
+  	}
+	: null;
 
+  // Filtros y búsqueda
+ 
   const proveedoresDisponibles = useMemo(() => {
-    return [...new Set(trabajos.map((trabajo) => trabajo.proveedor))].filter(
-      Boolean
-    );
+	return [...new Set(trabajos.map((t) => t.proveedor))].filter(Boolean);
   }, [trabajos]);
 
   const trabajosFiltrados = useMemo(() => {
-    return trabajos.filter((trabajo) => {
-      const coincideEstado =
-        estadoFiltro === "Todos" || trabajo.estado === estadoFiltro;
+	return trabajos.filter((trabajo) => {
+  	const coincideEstado =
+    	estadoFiltro === "Todos" || trabajo.estado === estadoFiltro;
 
-      const coincideProveedor =
-        proveedorFiltro === "Todos" || trabajo.proveedor === proveedorFiltro;
+  	const coincideProveedor =
+    	proveedorFiltro === "Todos" || trabajo.proveedor === proveedorFiltro;
 
-      const coincideFecha = estaDentroDelRango(trabajo.fecha, fechaFiltro);
+  	const coincideFecha = estaDentroDelRango(trabajo.fecha, fechaFiltro);
 
-      const textoBusqueda = normalizarTexto(busqueda);
-      const numeroIncidencia = normalizarTexto(trabajo.numeroIncidencia);
-      const numeroIncidenciaConNumeral = normalizarTexto(
-        `#${trabajo.numeroIncidencia}`
-      );
+  	const textoBusqueda = normalizarTexto(busqueda);
+  	const numeroIncidencia = normalizarTexto(trabajo.numeroIncidencia);
+  	const numeroIncidenciaConNumeral = normalizarTexto(
+    	`#${trabajo.numeroIncidencia}`
+  	);
 
-      const coincideBusqueda =
-        !textoBusqueda ||
-        normalizarTexto(trabajo.incidencia).includes(textoBusqueda) ||
-        normalizarTexto(trabajo.origen).includes(textoBusqueda) ||
-        normalizarTexto(trabajo.estado).includes(textoBusqueda) ||
-        normalizarTexto(trabajo.proveedor).includes(textoBusqueda) ||
-        numeroIncidencia.includes(textoBusqueda.replace("#", "")) ||
-        numeroIncidenciaConNumeral.includes(textoBusqueda);
+  	const coincideBusqueda =
+    	!textoBusqueda ||
+    	normalizarTexto(trabajo.incidencia).includes(textoBusqueda) ||
+    	normalizarTexto(trabajo.origen).includes(textoBusqueda) ||
+    	normalizarTexto(trabajo.estado).includes(textoBusqueda) ||
+    	normalizarTexto(trabajo.proveedor).includes(textoBusqueda) ||
+    	numeroIncidencia.includes(textoBusqueda.replace("#", "")) ||
+    	numeroIncidenciaConNumeral.includes(textoBusqueda);
 
-      return (
-        coincideEstado &&
-        coincideProveedor &&
-        coincideFecha &&
-        coincideBusqueda
-      );
-    });
+  	return (
+    	coincideEstado &&
+    	coincideProveedor &&
+    	coincideFecha &&
+    	coincideBusqueda
+  	);
+	});
   }, [trabajos, busqueda, estadoFiltro, proveedorFiltro, fechaFiltro]);
 
+  // Navegación detalle / edición / listado
   const handleVerTrabajo = (trabajo) => {
-    setTrabajoEnEdicion(null);
-    setTrabajoEditado(null);
+	setTrabajoEnEdicion(null);
+	setTrabajoEditado(null);
 
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set("detalle", trabajo.id);
-      return next;
-    });
+	setSearchParams((prev) => {
+  	const next = new URLSearchParams(prev);
+  	next.set("detalle", trabajo.id);
+  	return next;
+	});
   };
 
   const handleVolverListado = () => {
-    setTrabajoEnEdicion(null);
-    setTrabajoEditado(null);
+	setTrabajoEnEdicion(null);
+	setTrabajoEditado(null);
 
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.delete("detalle");
-      return next;
-    });
+	setSearchParams((prev) => {
+  	const next = new URLSearchParams(prev);
+  	next.delete("detalle");
+  	return next;
+	});
   };
 
   const handleEditarTrabajo = (trabajo) => {
-    setTrabajoEnEdicion(trabajo);
-    setTrabajoEditado(clonarObjeto(trabajo));
+	setTrabajoEnEdicion(trabajo);
+	setTrabajoEditado(clonarObjeto(trabajo));
 
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.delete("detalle");
-      return next;
-    });
+	setSearchParams((prev) => {
+  	const next = new URLSearchParams(prev);
+  	next.delete("detalle");
+  	return next;
+	});
   };
 
   const handleChangeEstadoTrabajo = (estado) => {
-    setTrabajoEditado((prev) => ({
-      ...prev,
-      estado,
-    }));
+	setTrabajoEditado((prev) => ({
+  	...prev,
+  	estado,
+	}));
   };
 
-  const handleGuardarCambiosTrabajo = () => {
-    if (!trabajoEditado) return;
-
-    setTrabajos((prev) =>
-      prev.map((trabajo) =>
-        trabajo.id === trabajoEditado.id ? trabajoEditado : trabajo
-      )
-    );
-
-    setTrabajoEnEdicion(trabajoEditado);
-    setIsCambiosGuardadosOpen(true);
+  const handleChangeMontoTrabajo = (monto) => {
+	setTrabajoEditado((prev) => ({
+  	...prev,
+  	presupuesto: monto,
+	}));
   };
 
+  const handleChangeProveedorTrabajo = (proveedorId) => {
+	const proveedorSeleccionado = proveedoresActivos.find((p) => p._id === proveedorId);
+	setTrabajoEditado((prev) => ({
+		...prev,
+		proveedorId,
+		proveedor: proveedorSeleccionado
+			? `${proveedorSeleccionado.nombre} ${proveedorSeleccionado.apellido}`.trim()
+			: "Sin proveedor asignado",
+	}));
+  };
+
+  // Guardar cambios de estado 
+  const handleGuardarCambiosTrabajo = async () => {
+	if (!trabajoEditado) return;
+
+	try {
+  	const trabajoOriginal = trabajos.find((t) => t.id === trabajoEditado.id);
+  	let huboCambios = false;
+
+  	// Cambio de estado
+  	if (trabajoEditado.estado !== trabajoOriginal?.estado) {
+    	await cambiarEstadoTrabajo(trabajoEditado.id, {
+      	estadoNuevo: trabajoEditado.estado,
+    	});
+    	huboCambios = true;
+  	}
+
+  	// Cambio de monto
+  	const montoNuevo = Number(trabajoEditado.presupuesto) || 0;
+  	const montoOriginal = Number(trabajoOriginal?.presupuesto) || 0;
+  	if (montoNuevo !== montoOriginal) {
+    	await updateTrabajo(trabajoEditado.id, { monto: montoNuevo });
+    	huboCambios = true;
+  	}
+
+	// Cambio de proveedor
+  	if (
+    	trabajoEditado.proveedorId &&
+    	trabajoEditado.proveedorId !== trabajoOriginal?.proveedorId
+  	) {
+    	await asignarProveedor(trabajoEditado.id, {
+      	proveedorId: trabajoEditado.proveedorId,
+      	monto: montoNuevo,
+    	});
+    	huboCambios = true;
+  	}	
+
+  	if (huboCambios) {
+    	await cargarTrabajos();
+  	}
+
+  	setIsCambiosGuardadosOpen(true);
+	} catch (err) {
+    	const msg =
+    	err?.response?.data?.message ||
+    	err?.message ||
+    	"No se pudo guardar el cambio";
+  	alert(msg);
+	}
+  };
+
+
+  // Crear trabajo 
   const handleChangeTrabajoDraft = (campo, valor) => {
-    setTrabajoDraft((prev) => ({
-      ...prev,
-      [campo]: valor,
-    }));
+	setTrabajoDraft((prev) => ({
+  	...prev,
+  	[campo]: valor,
+	}));
   };
 
   const reiniciarTrabajoDraft = () => {
-    setTrabajoDraft(TRABAJO_DRAFT_INICIAL);
+	setTrabajoDraft(TRABAJO_DRAFT_INICIAL);
   };
 
   const handleCerrarCrearTrabajo = () => {
-    setIsCrearTrabajoOpen(false);
-    reiniciarTrabajoDraft();
+	setIsCrearTrabajoOpen(false);
+	reiniciarTrabajoDraft();
   };
 
   const handleCrearTrabajo = () => {
-    const maxNumeroIncidencia = Math.max(
-      0,
-      ...trabajos.map((trabajo) => Number(trabajo.numeroIncidencia) || 0)
-    );
-
-    const nuevoTrabajo = {
-      id: Date.now(),
-      numeroIncidencia:
-        trabajoDraft.numeroIncidencia || String(maxNumeroIncidencia + 1),
-      incidencia: trabajoDraft.titulo || "Trabajo sin título",
-      origen: trabajoDraft.origen || "Manual",
-      estado: trabajoDraft.estado || "Asignado",
-      proveedor: trabajoDraft.responsable || "Sin proveedor asignado",
-      presupuesto: convertirMontoANumero(trabajoDraft.costoEstimado),
-      fecha:
-        formatearFechaInput(trabajoDraft.fechaInicioEstimada) ||
-        new Date().toLocaleDateString("es-AR"),
-      descripcion: trabajoDraft.descripcion,
-      prioridad: trabajoDraft.prioridad,
-      aCargoDe: trabajoDraft.aCargoDe,
-      categoria: trabajoDraft.categoria,
-      unidad: trabajoDraft.unidad,
-      piso: trabajoDraft.piso,
-      edificio: trabajoDraft.edificio,
-    };
-
-    setTrabajos((prev) => [nuevoTrabajo, ...prev]);
-
-    setIsCrearTrabajoOpen(false);
-    reiniciarTrabajoDraft();
-    setIsTrabajoSuccessOpen(true);
+	// TODO: llamada real al back con incidencia seleccionada
+	alert("Funcionalidad de creación de trabajo: se conectará en la próxima fase");
+	setIsCrearTrabajoOpen(false);
+	reiniciarTrabajoDraft();
   };
 
   const handleNuevoTrabajo = () => {
-    setIsCrearTrabajoOpen(true);
+	setIsCrearTrabajoOpen(true);
   };
 
+  
+  // Eliminar trabajo 
   const solicitarEliminacionTrabajo = (trabajo) => {
-    setTrabajoAEliminar({
-      ...trabajo,
-      codigoTrabajo: obtenerCodigoTrabajo(trabajo),
-    });
-    setIsConfirmarEliminacionOpen(true);
+	setTrabajoAEliminar({
+  	...trabajo,
+  	codigoTrabajo: obtenerCodigoTrabajo(trabajo),
+	});
+	setIsConfirmarEliminacionOpen(true);
   };
 
   const cancelarEliminacionTrabajo = () => {
-    setTrabajoAEliminar(null);
-    setIsConfirmarEliminacionOpen(false);
+	setTrabajoAEliminar(null);
+	setIsConfirmarEliminacionOpen(false);
   };
 
-  const confirmarEliminacionTrabajo = () => {
-    if (!trabajoAEliminar) return;
+  const confirmarEliminacionTrabajo = async () => {
+	if (!trabajoAEliminar) return;
 
-    const trabajoId = trabajoAEliminar.id;
+	try {
+  	await deleteTrabajo(trabajoAEliminar.id);
 
-    setTrabajos((prev) => prev.filter((item) => item.id !== trabajoId));
+  	await cargarTrabajos();
 
-    if (String(detalleTrabajoId) === String(trabajoId)) {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.delete("detalle");
-        return next;
-      });
-    }
+  	if (String(detalleTrabajoId) === String(trabajoAEliminar.id)) {
+    	setSearchParams((prev) => {
+      	const next = new URLSearchParams(prev);
+      	next.delete("detalle");
+      	return next;
+    	});
+  	}
 
-    if (trabajoEnEdicion?.id === trabajoId) {
-      setTrabajoEnEdicion(null);
-      setTrabajoEditado(null);
-    }
+  	if (trabajoEnEdicion?.id === trabajoAEliminar.id) {
+    	setTrabajoEnEdicion(null);
+    	setTrabajoEditado(null);
+  	}
 
-    setIsConfirmarEliminacionOpen(false);
-    setTrabajoAEliminar(null);
-    setIsEliminacionSuccessOpen(true);
+  	setIsConfirmarEliminacionOpen(false);
+  	setTrabajoAEliminar(null);
+  	setIsEliminacionSuccessOpen(true);
+	} catch (err) {
+  	const msg =
+    	err?.response?.data?.message ||
+    	err?.message ||
+    	"No se pudo cancelar el trabajo";
+  	alert(msg);
+	}
   };
 
   const cerrarModalEliminacionSuccess = () => {
-    setIsEliminacionSuccessOpen(false);
+	setIsEliminacionSuccessOpen(false);
   };
 
   const cerrarModalTrabajoCreadoSuccess = () => {
-    setIsTrabajoSuccessOpen(false);
+	setIsTrabajoSuccessOpen(false);
   };
 
   const cerrarModalCambiosGuardadosSuccess = () => {
-    setIsCambiosGuardadosOpen(false);
+	setIsCambiosGuardadosOpen(false);
   };
 
   return {
-    busqueda,
-    setBusqueda,
-    estadoFiltro,
-    setEstadoFiltro,
-    proveedorFiltro,
-    setProveedorFiltro,
-    fechaFiltro,
-    setFechaFiltro,
-    proveedoresDisponibles,
-    trabajosFiltrados,
-    totalTrabajos: trabajos.length,
+	// Datos
+	trabajos,
+	trabajosFiltrados,
+	totalTrabajos: trabajos.length,
+	loading,
+	error,
+	proveedoresActivos,
 
-    trabajoSeleccionado,
-    trabajoEnEdicion,
-    trabajoEditado,
+	// Filtros
+	busqueda,
+	setBusqueda,
+	estadoFiltro,
+	setEstadoFiltro,
+	proveedorFiltro,
+	setProveedorFiltro,
+	fechaFiltro,
+	setFechaFiltro,
+	proveedoresDisponibles,
 
-    isCrearTrabajoOpen,
-    isTrabajoSuccessOpen,
-    isCambiosGuardadosOpen,
+	// Selección y edición
+	trabajoSeleccionado,
+	trabajoEnEdicion,
+	trabajoEditado,
 
-    trabajoDraft,
+	// Modales
+	isCrearTrabajoOpen,
+	isTrabajoSuccessOpen,
+	isCambiosGuardadosOpen,
 
-    isConfirmarEliminacionOpen,
-    trabajoAEliminar,
-    isEliminacionSuccessOpen,
+	trabajoDraft,
 
-    handleVerTrabajo,
-    handleVolverListado,
-    handleEditarTrabajo,
-    handleChangeEstadoTrabajo,
-    handleGuardarCambiosTrabajo,
+	isConfirmarEliminacionOpen,
+	trabajoAEliminar,
+	isEliminacionSuccessOpen,
 
-    handleNuevoTrabajo,
-    handleCerrarCrearTrabajo,
-    handleCrearTrabajo,
-    handleChangeTrabajoDraft,
+	// Handlers
+	handleVerTrabajo,
+	handleVolverListado,
+	handleEditarTrabajo,
+	handleChangeEstadoTrabajo,
+	handleGuardarCambiosTrabajo,
+	handleChangeMontoTrabajo,
+	handleChangeProveedorTrabajo,
 
-    solicitarEliminacionTrabajo,
-    cancelarEliminacionTrabajo,
-    confirmarEliminacionTrabajo,
-    cerrarModalEliminacionSuccess,
-    cerrarModalTrabajoCreadoSuccess,
-    cerrarModalCambiosGuardadosSuccess,
+	handleNuevoTrabajo,
+	handleCerrarCrearTrabajo,
+	handleCrearTrabajo,
+	handleChangeTrabajoDraft,
+
+	solicitarEliminacionTrabajo,
+	cancelarEliminacionTrabajo,
+	confirmarEliminacionTrabajo,
+	cerrarModalEliminacionSuccess,
+	cerrarModalTrabajoCreadoSuccess,
+	cerrarModalCambiosGuardadosSuccess,
+	
   };
 }
+
