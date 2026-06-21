@@ -9,8 +9,8 @@ const { upload } = require('../../utils/upload');
 router.use(auth);
 
 // Listar y obtener: solo admin (libro contable)
-router.get('/', roles('administrador'), ctrl.listar);
-router.get('/:id', roles('administrador'), ctrl.obtener);
+router.get('/', roles('administrador','ocupante'), ctrl.listar);
+router.get('/:id', roles('administrador','ocupante'), ctrl.obtener);
 
 // Crear gasto MANUAL (admin)
 router.post('/', roles('administrador'), upload.single('comprobante'), ctrl.crear);
