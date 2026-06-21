@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "./useAuth";
+import { mostrarToastError } from "../utils/toasts";
 
 function obtenerIniciales(nombreCompleto = "", apellido = "") {
   const nombre = String(nombreCompleto || "").trim();
@@ -51,26 +52,19 @@ function normalizarPerfilDesdeUser(user) {
 export function usePerfil() {
   const { user, updateUser } = useAuth();
 
-  /**
-   * Perfil base derivado del usuario autenticado
-   * No lo guardamos en state para evitar sincronizaciones con useEffect.
-   */
+ 
   const perfilBase = useMemo(() => {
     return normalizarPerfilDesdeUser(user);
   }, [user]);
 
-  /**
-   * Overrides locales:
-   * - nombre/apellido/teléfono editados
-   * - avatar local/subido
-   */
+  /* Overrides locales:
+   - nombre/apellido/teléfono editados
+   - avatar local/subido */
   const [perfilLocal, setPerfilLocal] = useState({});
   const [avatarTemporalUrl, setAvatarTemporalUrl] = useState("");
 
-  /**
-   * Perfil final mostrado en pantalla:
-   * mezcla perfil base + cambios locales
-   */
+  /* Perfil final mostrado en pantalla:
+    mezcla perfil base + cambios locales */
   const perfil = useMemo(() => {
     return {
       ...perfilBase,
@@ -86,28 +80,21 @@ export function usePerfil() {
     "Cambios guardados con éxito"
   );
 
-  /**
-   * Form del modal editar
-   * Se llena recién al abrir el modal
-   */
+  // Form del modal editar
   const [formEditar, setFormEditar] = useState({
     nombre: "",
     apellido: "",
     telefono: "",
   });
 
-  /**
-   * Form del modal cambiar contraseña
-   */
+  //Form del modal cambiar contraseña
   const [formPassword, setFormPassword] = useState({
     contrasenaActual: "",
     nuevaContrasena: "",
     confirmarNuevaContrasena: "",
   });
 
-  /**
-   * Cleanup para liberar object URLs del avatar preview
-   */
+  //Cleanup para liberar object URLs del avatar preview
   useEffect(() => {
     return () => {
       if (avatarTemporalUrl) {
@@ -120,9 +107,7 @@ export function usePerfil() {
     return obtenerIniciales(perfil.nombre, perfil.apellido);
   }, [perfil.nombre, perfil.apellido]);
 
-  /**
-   * Validaciones visuales del password
-   */
+  //Validaciones visuales del password
   const validacionesPassword = useMemo(() => {
     const nueva = formPassword.nuevaContrasena || "";
 
@@ -186,12 +171,18 @@ export function usePerfil() {
     }));
   };
 
+  const TAMANIO_MAXIMO_AVATAR = 5 * 1024 * 1024;
   const seleccionarAvatar = (file) => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Seleccioná un archivo de imagen válido.");
+      mostrarToastError("Seleccioná un archivo de imagen válido.");
       return;
+    }
+    
+    if (file.size > TAMANIO_MAXIMO_AVATAR) {
+     mostrarToastError("La imagen supera el máximo permitido de 5MB.");
+     return;
     }
 
     if (avatarTemporalUrl) {

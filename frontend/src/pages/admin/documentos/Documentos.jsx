@@ -15,6 +15,7 @@ import { getEdificios } from "../../../services/edificiosService";
 
 import FiltrosDocumentosAdmin from "./componentes/FiltrosDocumentosAdmin";
 import TablaDocumentosAdmin from "./componentes/TablaDocumentosAdmin";
+import { mostrarToastError } from "../../../utils/toasts";
 
 const TAMANIO_MAXIMO_ARCHIVO = 5 * 1024 * 1024;
 const TIPOS_MIME_PERMITIDOS = [
@@ -241,7 +242,12 @@ function ModalCargarDocumento({
         </div>
 
         <div className="flex justify-center gap-6 border-t border-border px-6 py-5">
-          <Button variant="elevated" type="button" onClick={onSave}disabled={subiendo}>
+          <Button 
+           variant="elevated" 
+           type="button" 
+           onClick={onSave}
+           disabled={subiendo}
+          >
            {subiendo ? "Subiendo..." : "Guardar"}
           </Button>
 
@@ -443,12 +449,10 @@ function DocumentosAdmin() {
 
     const edificioId = edificios[0]?._id;
     if (!edificioId) {
-    setErrores((prev) => ({
-      ...prev,
-      archivo: "No hay edificios disponibles para asociar el documento",
-    }));
-    return;
-    }
+      mostrarToastError("No hay edificios disponibles para asociar el documento")
+      return;
+    };
+    
 
     setSubiendo(true);
 
@@ -472,10 +476,11 @@ function DocumentosAdmin() {
       err?.message ||
       "No se pudo subir el documento";
     setErrores((prev) => ({ ...prev, archivo: msg }));
+    mostrarToastError(msg);
     } finally {
     setSubiendo(false);
     }
-};
+  };
 
 
 
@@ -492,7 +497,8 @@ function DocumentosAdmin() {
         err?.response?.data?.message ||
         err?.message ||
         "No se pudo eliminar el documento";
-    alert(msg);
+
+     mostrarToastError(msg);
     }
   };
 
@@ -500,7 +506,7 @@ function DocumentosAdmin() {
     if (documento.url) {
       window.open(documento.url, "_blank", "noopener,noreferrer");
     }
-};
+  };
 
   return (
     <ContenedorPanelPorRol titulo="Documentos" subtitulo="Gestión de archivos">
