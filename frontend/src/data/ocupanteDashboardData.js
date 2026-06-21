@@ -1,5 +1,3 @@
-// src/data/ocupanteDashboardData.js
-
 import {
   LayoutGrid,
   AlertCircle,
