@@ -2,12 +2,15 @@ function BadgeEstadoIncidencia({ estado }) {
   const normalizado = estado?.toLowerCase();
 
   const estilos = {
-    abierta: "border-red-400 bg-red-50 text-red-500",
-    asignado: "border-orange-400 bg-orange-50 text-orange-500",
-    "en trabajo": "border-blue-400 bg-blue-50 text-blue-500",
-    resuelta: "border-emerald-400 bg-emerald-50 text-emerald-600",
-    cerrada: "border-slate-400 bg-slate-100 text-slate-500",
+  abierta: "border-red-400 bg-red-50 text-red-500",
+  en_progreso: "border-blue-400 bg-blue-50 text-blue-500",
+  resuelta: "border-emerald-400 bg-emerald-50 text-emerald-600",
+  cerrada: "border-slate-400 bg-slate-100 text-slate-500",
+  rechazada: "border-orange-400 bg-orange-50 text-orange-600",
+  cancelada: "border-slate-400 bg-slate-200 text-slate-600",
   };
+
+
 
   return (
     <span

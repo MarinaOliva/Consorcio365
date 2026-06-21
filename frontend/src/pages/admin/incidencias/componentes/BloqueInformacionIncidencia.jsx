@@ -30,11 +30,12 @@ function BloqueInformacionIncidencia({
                   focus:border-primary focus:ring-2 focus:ring-primary/20
                 "
               >
-                <option value="Abierta">Abierta</option>
-                <option value="Asignado">Asignado</option>
-                <option value="En trabajo">En trabajo</option>
-                <option value="Resuelta">Resuelta</option>
-                <option value="Cerrada">Cerrada</option>
+                <option value="ABIERTA">Abierta</option>
+                <option value="EN_PROGRESO">En progreso</option>
+                <option value="RESUELTA">Resuelta</option>
+                <option value="CERRADA">Cerrada</option>
+                <option value="RECHAZADA">Rechazada</option>
+                <option value="CANCELADA">Cancelada</option>
               </select>
             </div>
 
@@ -53,9 +54,9 @@ function BloqueInformacionIncidencia({
                   focus:border-primary focus:ring-2 focus:ring-primary/20
                 "
               >
-                <option value="Alta">Alta</option>
-                <option value="Media">Media</option>
-                <option value="Baja">Baja</option>
+                <option value="alta">Alta</option>
+                <option value="media">Media</option>
+                <option value="baja">Baja</option>
               </select>
             </div>
           </div>
@@ -65,7 +66,7 @@ function BloqueInformacionIncidencia({
       </div>
 
       <div className="grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-[0.7fr_1fr_0.7fr_1.2fr_1.4fr_0.9fr]">
-        <InfoIncidenciaItem label="ID" value={`#${incidencia.id}`} />
+        <InfoIncidenciaItem label="ID" value={`#${String(incidencia.id).slice(-4)}`} /> 
         <InfoIncidenciaItem label="Edificio" value={incidencia.edificio} />
         <InfoIncidenciaItem label="Unidad" value={incidencia.unidad} />
         <InfoIncidenciaItem label="Creado por" value={incidencia.creadoPor} />

@@ -67,6 +67,7 @@ function CrearTrabajoModal({
   incidenciasDisponibles = [],
   proveedoresDisponibles = [],
   instanciaPreseleccionada = null,
+  incidenciaPreseleccionada = null,
 }) {
   if (!isOpen) return null;
 
@@ -122,7 +123,7 @@ function CrearTrabajoModal({
     	<div className="flex-1 space-y-5 overflow-y-auto px-8 py-6">
       	
 		{instanciaPreseleccionada ? (
-  // Caso: viene desde el detalle del plan de mantenimiento
+  // Desde plan de mantenimiento
   <div className="rounded-lg border border-secondary bg-white/70 px-4 py-3">
 	<h3 className="mb-2 text-sm font-bold text-primary">
   	Instancia de mantenimiento
@@ -150,6 +151,39 @@ function CrearTrabajoModal({
     	<span className="font-semibold text-textMuted">Edificio:</span>{" "}
     	<span className="font-bold text-textMain">
       	{instanciaPreseleccionada.edificio}
+    	</span>
+  	</p>
+	</div>
+  </div>
+) : incidenciaPreseleccionada ? (
+  // Desde detalle de incidencia
+  <div className="rounded-lg border border-secondary bg-white/70 px-4 py-3">
+	<h3 className="mb-2 text-sm font-bold text-primary">
+  	Incidencia de origen
+	</h3>
+	<div className="grid grid-cols-1 gap-x-6 gap-y-1 text-xs sm:grid-cols-2">
+  	<p>
+    	<span className="font-semibold text-textMuted">Título:</span>{" "}
+    	<span className="font-bold text-textMain">
+      	{incidenciaPreseleccionada.titulo}
+    	</span>
+  	</p>
+  	<p>
+    	<span className="font-semibold text-textMuted">Categoría:</span>{" "}
+    	<span className="font-bold text-textMain">
+      	{incidenciaPreseleccionada.categoria}
+    	</span>
+  	</p>
+  	<p>
+    	<span className="font-semibold text-textMuted">Edificio:</span>{" "}
+    	<span className="font-bold text-textMain">
+      	{incidenciaPreseleccionada.edificio}
+    	</span>
+  	</p>
+  	<p>
+    	<span className="font-semibold text-textMuted">Unidad:</span>{" "}
+    	<span className="font-bold text-textMain">
+      	{incidenciaPreseleccionada.unidad}
     	</span>
   	</p>
 	</div>
@@ -235,6 +269,8 @@ function CrearTrabajoModal({
 	)}
   </>
 )}
+
+
 
       	{/* Descripción del trabajo */}
       	<CampoArea

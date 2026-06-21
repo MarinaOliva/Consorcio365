@@ -43,6 +43,15 @@ const crear = async (data, usuario, io) => {
   if (prioridad && !PRIORIDADES_VALIDAS.includes(prioridad)) {
 	throw makeError(400, `prioridad inválida. Permitidas: ${PRIORIDADES_VALIDAS.join(', ')}`);
   }
+  // Si el admin está creando la incidencia para otro ocupante, validar
+  if (data.ocupanteId && usuario.tipo === TIPOS_USUARIO.ADMINISTRADOR) {
+    const Usuario = require('../../models/Usuario');
+    const ocupante = await Usuario.findById(data.ocupanteId);
+    if (!ocupante) throw makeError(404, 'Ocupante no encontrado');
+    if (ocupante.tipo !== TIPOS_USUARIO.OCUPANTE) {
+        throw makeError(400, 'El usuario indicado no es un ocupante');
+    }
+  }
 
   const edificio = await Edificio.findById(edificioId);
   if (!edificio) throw makeError(404, 'Edificio no encontrado');
@@ -50,7 +59,7 @@ const crear = async (data, usuario, io) => {
   const incidencia = await Incidencia.create({
 	edificioId,
 	espacio: espacio || null,
-	ocupanteId: usuario._id,
+	ocupanteId: data.ocupanteId || usuario._id,
 	titulo,
 	descripcion,
 	categoria,

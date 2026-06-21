@@ -48,7 +48,7 @@ function TablaIncidencias({
                 className="border-b border-border/50 last:border-b-0 hover:bg-primarySoft/30"
               >
                 <td className="px-2 py-3 font-bold text-textMuted">
-                  #{incidencia.id}
+                  #{incidencia.id.slice(-4)}
                 </td>
 
                 <td className="px-2 py-3 text-textMain">
