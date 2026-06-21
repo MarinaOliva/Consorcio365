@@ -5,7 +5,7 @@ import FiltrosHistorialTrabajosProveedor from "../../components/proveedor/Filtro
 import TablaHistorialTrabajosProveedor from "../../components/proveedor/TablaHistorialTrabajosProveedor";
 import ModalDetalleHistorialTrabajoProveedor from "../../components/proveedor/ModalDetalleHistorialTrabajoProveedor";
 
-import { historialTrabajosProveedorMock } from "../../data/proveedorDashboardData";
+import { useTrabajosProveedor } from "../../hooks/useTrabajosProveedor";
 
 function normalizarTexto(valor) {
   return String(valor ?? "").toLowerCase().trim();
@@ -38,27 +38,14 @@ function estaDentroDelRango(fecha, filtro) {
 
 function TrabajosProveedor() {
 
+  const { trabajosHistoricos } = useTrabajosProveedor();
   const [estadoFiltro, setEstadoFiltro] = useState("Todos");
   const [fechaFiltro, setFechaFiltro] = useState("Todos");
   const [busqueda, setBusqueda] = useState("");
 
   const [trabajoSeleccionado, setTrabajoSeleccionado] = useState(null);
 
-  const trabajosBaseProveedor = useMemo(() => {
-    
-    const trabajosHistoricos = historialTrabajosProveedorMock.filter(
-      (trabajo) => {
-        const estado = normalizarTexto(trabajo.estado);
-        return estado === "finalizado" || estado === "cerrado";
-      },
-    );
-    return trabajosHistoricos.map((trabajo) => ({
-      ...trabajo,
-      titulo: trabajo.incidencia || trabajo.titulo,
-      evidencias: trabajo.evidencias || [],
-    }));
-
-  }, []);
+  const trabajosBaseProveedor = trabajosHistoricos; 
 
   const trabajosFiltrados = useMemo(() => {
     return trabajosBaseProveedor.filter((trabajo) => {

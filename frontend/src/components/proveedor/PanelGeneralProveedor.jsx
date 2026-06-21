@@ -1,4 +1,3 @@
-import { useState, useMemo } from "react";
 import EspecialidadBanner from "./EspecialidadBanner";
 import ProveedorStatsGrid from "./ProveedorStatsGrid";
 import TrabajosActivosList from "./TrabajosActivosList";
@@ -6,185 +5,92 @@ import ModalDetalleTrabajoProveedor from "./ModalDetalleTrabajoProveedor";
 import ModalConfirmarFinalizacionTrabajo from "./ModalConfirmarFinalizacionTrabajo";
 import ModalSubirEvidenciasTrabajo from "./ModalSubirEvidenciasTrabajo";
 import SuccessModal from "../shared/SuccessModal";
-import {
-  especialidadMock,
-  trabajosActivosMock,
-} from "../../data/proveedorDashboardData";
 
+import { useTrabajosProveedor } from "../../hooks/useTrabajosProveedor";
 
 function PanelGeneralProveedor() {
-  const [trabajos, setTrabajos] = useState(
-    trabajosActivosMock.map((trabajo) => ({
-      ...trabajo,
-      evidencias: trabajo.evidencias || [],
-    }))
-  );
+  const {
+	trabajosActivos,
+	estadisticas,
+	especialidad,
+	loading,
+	error,
 
-  const estadisticasDinamicas = useMemo(() => {
-    const pendientes = trabajos.filter(
-      (trabajo) => String(trabajo.estado || "").toLowerCase().trim() === "asignado",
-    ).length;
+	trabajoSeleccionado,
+	trabajoEnFinalizacion,
+	trabajoEnCargaEvidencia,
 
-    const enCurso = trabajos.filter(
-      (trabajo) =>
-        String(trabajo.estado || "").toLowerCase().trim() === "en progreso",
-    ).length;
+	isSuccessOpen,
+	successMessage,
 
-    const finalizados = trabajos.filter(
-      (trabajo) =>
-        String(trabajo.estado || "").toLowerCase().trim() === "finalizado",
-    ).length;
-
-    return {
-      pendientes,
-      enCurso,
-      finalizados,
-    };
-  }, [trabajos]);
-
-  const trabajosActivos = useMemo(() => {
-    return trabajos.filter((trabajo) => {
-      const estado = String(trabajo.estado || "").toLowerCase().trim();
-
-      return estado === "asignado" || estado === "en progreso";
-    });
-  }, [trabajos]);
- 
-
-  const [trabajoSeleccionado, setTrabajoSeleccionado] = useState(null);
-  
-  const [trabajoEnFinalizacion, setTrabajoEnFinalizacion] = useState(null);
-  const [trabajoEnCargaEvidencia, setTrabajoEnCargaEvidencia] = useState(null);
-
-  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-
-  const handleVerDetalleTrabajo = (trabajo) => {
-    setTrabajoSeleccionado(trabajo);
-  };
-
-  const handleCerrarDetalleTrabajo = () => {
-    setTrabajoSeleccionado(null);
-  };
-
-  
-  const handleMarcarEnProgreso = (trabajo) => {
-    const actualizado = {
-      ...trabajo,
-      estado: "En progreso",
-    };
-
-    setTrabajos((prev) =>
-      prev.map((item) =>
-        item.id === trabajo.id ? actualizado : item
-      )
-    );
-
-    setTrabajoSeleccionado(null);
-    setSuccessMessage("Se cambió el estado del trabajo correctamente");
-    setIsSuccessOpen(true);
-  };
-
-  
-const handleAbrirConfirmacionFinalizacion = (trabajo) => {
-    setTrabajoSeleccionado(null);
-    setTrabajoEnFinalizacion(trabajo);
-  };
-
-  const handleCerrarConfirmacionFinalizacion = () => {
-    setTrabajoEnFinalizacion(null);
-  };
-
-  const handleConfirmarFinalizacionTrabajo = () => {
-    if (!trabajoEnFinalizacion) return;
-
-    const actualizado = {
-      ...trabajoEnFinalizacion,
-      estado: "Finalizado",
-    };
-
-    setTrabajos((prev) =>
-      prev.map((item) =>
-        item.id === trabajoEnFinalizacion.id ? actualizado : item
-      )
-    );
-
-    setTrabajoEnFinalizacion(null);
-    setSuccessMessage("Trabajo finalizado correctamente");
-    setIsSuccessOpen(true);
-  };
-
-  const handleAbrirSubirEvidencias = (trabajo) => {
-    setTrabajoSeleccionado(null);
-    setTrabajoEnCargaEvidencia(trabajo);
-  };
-
-  const handleCerrarSubirEvidencias = () => {
-    setTrabajoEnCargaEvidencia(null);
-  };
-
-  const handleSubirEvidencias = (archivos) => {
-    if (!trabajoEnCargaEvidencia || !archivos?.length) return;
-
-    const actualizado = {
-      ...trabajoEnCargaEvidencia,
-      evidencias: [...(trabajoEnCargaEvidencia.evidencias || []), ...archivos],
-    };
-
-    setTrabajos((prev) =>
-      prev.map((item) =>
-        item.id === trabajoEnCargaEvidencia.id ? actualizado : item
-      )
-    );
-
-    setTrabajoEnCargaEvidencia(null);
-    setSuccessMessage("Archivo subido con éxito");
-    setIsSuccessOpen(true);
-  };
+	handleVerDetalleTrabajo,
+	handleCerrarDetalleTrabajo,
+	handleMarcarEnProgreso,
+	handleAbrirConfirmacionFinalizacion,
+	handleCerrarConfirmacionFinalizacion,
+	handleConfirmarFinalizacionTrabajo,
+	handleAbrirSubirEvidencias,
+	handleCerrarSubirEvidencias,
+	handleSubirEvidencias,
+	cerrarSuccess,
+  } = useTrabajosProveedor();
 
   return (
-    <>
-      <section className="mx-auto max-w-[1120px] space-y-5">
-        <EspecialidadBanner especialidad={especialidadMock} />
+	<>
+  	<section className="mx-auto max-w-[1120px] space-y-5">
+    	<EspecialidadBanner especialidad={especialidad} />
 
-        <ProveedorStatsGrid stats={estadisticasDinamicas} />
+    	{loading && (
+      	<p className="py-6 text-sm text-textMuted">Cargando trabajos...</p>
+    	)}
 
-        <TrabajosActivosList
-          trabajos={trabajosActivos}
-          onVerDetalle={handleVerDetalleTrabajo}
-        />
-      </section>
+    	{error && !loading && (
+      	<div className="rounded-md border border-red-200 bg-red-50 p-4">
+        	<p className="text-sm font-semibold text-red-600">{error}</p>
+      	</div>
+    	)}
 
-      <ModalDetalleTrabajoProveedor
-        isOpen={Boolean(trabajoSeleccionado)}
-        trabajo={trabajoSeleccionado}
-        onClose={handleCerrarDetalleTrabajo}
-        onMarcarEnProgreso={handleMarcarEnProgreso}
-        onAbrirConfirmacionFinalizacion={handleAbrirConfirmacionFinalizacion}
-        onAbrirSubirEvidencias={handleAbrirSubirEvidencias}
+    	{!loading && !error && (
+      	<>
+        	<ProveedorStatsGrid stats={estadisticas} />
 
-      />
+        	<TrabajosActivosList
+          	trabajos={trabajosActivos}
+          	onVerDetalle={handleVerDetalleTrabajo}
+        	/>
+      	</>
+    	)}
+  	</section>
 
-      <ModalConfirmarFinalizacionTrabajo
-        isOpen={Boolean(trabajoEnFinalizacion)}
-        onClose={handleCerrarConfirmacionFinalizacion}
-        onConfirm={handleConfirmarFinalizacionTrabajo}
-      />
+  	<ModalDetalleTrabajoProveedor
+    	isOpen={Boolean(trabajoSeleccionado)}
+    	trabajo={trabajoSeleccionado}
+    	onClose={handleCerrarDetalleTrabajo}
+    	onMarcarEnProgreso={handleMarcarEnProgreso}
+    	onAbrirConfirmacionFinalizacion={handleAbrirConfirmacionFinalizacion}
+    	onAbrirSubirEvidencias={handleAbrirSubirEvidencias}
+  	/>
 
-      <ModalSubirEvidenciasTrabajo
-        isOpen={Boolean(trabajoEnCargaEvidencia)}
-        onClose={handleCerrarSubirEvidencias}
-        onUpload={handleSubirEvidencias}
-      />
+  	<ModalConfirmarFinalizacionTrabajo
+    	isOpen={Boolean(trabajoEnFinalizacion)}
+    	onClose={handleCerrarConfirmacionFinalizacion}
+    	onConfirm={handleConfirmarFinalizacionTrabajo}
+  	/>
 
-      <SuccessModal
-        isOpen={isSuccessOpen}
-        onClose={() => setIsSuccessOpen(false)}
-        message={
-          successMessage || "Se cambió el estado del trabajo correctamente"
-        }
-      />
-    </>
+  	<ModalSubirEvidenciasTrabajo
+    	isOpen={Boolean(trabajoEnCargaEvidencia)}
+    	onClose={handleCerrarSubirEvidencias}
+    	onUpload={handleSubirEvidencias}
+  	/>
+
+  	<SuccessModal
+    	isOpen={isSuccessOpen}
+    	onClose={cerrarSuccess}
+    	message={
+      	successMessage || "Se cambió el estado del trabajo correctamente"
+    	}
+  	/>
+	</>
   );
 }
 

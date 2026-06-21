@@ -270,6 +270,27 @@ export function useIncidenciasAdmin() {
 	cargarOcupantes();
 	cargarEdificios();
   }, []);
+ useEffect(() => {
+  console.log("🔍 Detalle effect — incidencias.length:", incidencias.length);
+
+  if (incidencias.length === 0) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const detalleId = params.get("detalle");
+  console.log("🔍 detalleId del query:", detalleId);
+
+  if (!detalleId) return;
+
+  console.log("🔍 IDs disponibles:", incidencias.map((i) => i.id));
+
+  const encontrada = incidencias.find((i) => i.id === detalleId);
+  console.log("🔍 ¿Encontrada?", encontrada);
+
+  if (encontrada) {
+	setIncidenciaSeleccionada(encontrada);
+	window.history.replaceState({}, "", "/admin/incidencias");
+  }
+}, [incidencias]);
 
   // Filtros derivados
   const edificiosDisponibles = useMemo(() => {

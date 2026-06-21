@@ -32,6 +32,7 @@ export const loginRequest = async (email, password) => {
 	tipo: usuario.tipo,
 	estado: usuario.estado,
 	debeCambiarPassword: usuario.debeCambiarPassword,
+	proveedorDetalle: usuario.proveedorDetalle || null,
   };
 
   return { token, user };

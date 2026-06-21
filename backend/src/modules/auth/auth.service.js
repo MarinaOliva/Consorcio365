@@ -69,7 +69,8 @@ const login = async ({ email, password }) => {
   	email: usuario.email,
   	tipo: usuario.tipo,
   	estado: usuario.estado,
-  	debeCambiarPassword: usuario.debeCambiarPassword
+  	debeCambiarPassword: usuario.debeCambiarPassword,
+    proveedorDetalle: usuario.proveedorDetalle || null,
 	}
   };
 };
