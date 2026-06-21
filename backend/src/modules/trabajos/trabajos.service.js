@@ -121,11 +121,6 @@ const crear = async (data, usuario) => {
 	await origen.incidencia.save();
   }
 
-  if (origen.instancia && origen.instancia.estado === ESTADOS_INSTANCIA.PROGRAMADA) {
-	origen.instancia.estado = ESTADOS_INSTANCIA.EN_CURSO;
-	await origen.instancia.save();
-  }
-
   return {
 	success: true,
 	message: 'Trabajo creado correctamente',
@@ -158,6 +153,7 @@ const listar = async (query, usuario) => {
 	.populate('proveedorId', 'nombre apellido email proveedorDetalle.especialidad')
 	.populate('incidenciaId', 'titulo categoria estado')
 	.populate('instanciaMantenimientoId', 'fechaProgramada estado')
+	.populate('historialEstados.creadoPorId', 'nombre apellido tipo')
 	.sort({ createdAt: -1 });
 
   return { success: true, total: trabajos.length, trabajos };
@@ -315,12 +311,24 @@ const cambiarEstado = async (id, data, usuario) => {
   }
 
   cambiarEstadoHelper(trabajo, estadoNuevo, usuario._id, observacion || '');
-  await trabajo.save();
+await trabajo.save();
 
-  // Side effects al CERRAR 
-  if (estadoNuevo === ESTADOS_TRABAJO.CERRADO) {
+// Side effect: al iniciar trabajo de mantenimiento, instancia pasa a EN_CURSO
+if (
+	estadoNuevo === ESTADOS_TRABAJO.EN_EJECUCION &&
+	trabajo.instanciaMantenimientoId
+) {
+	const instancia = await InstanciaMantenimiento.findById(trabajo.instanciaMantenimientoId);
+	if (instancia && instancia.estado === ESTADOS_INSTANCIA.PROGRAMADA) {
+    	instancia.estado = ESTADOS_INSTANCIA.EN_CURSO;
+    	await instancia.save();
+	}
+}
+
+// Side effects al CERRAR
+if (estadoNuevo === ESTADOS_TRABAJO.CERRADO) {
 	await procesarCierreTrabajo(trabajo, usuario);
-  }
+}
 
   return { success: true, trabajo };
 };

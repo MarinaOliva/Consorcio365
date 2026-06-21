@@ -51,6 +51,9 @@ function VistaDetalleTrabajo({ trabajo, onVolver }) {
                   value={detalle.presupuesto}
                 />
               </div>
+              <div className="grid grid-cols-1 gap-x-5 gap-y-4 md:grid-cols-2">
+                <InfoTrabajoItem label="Proveedor" value={detalle.proveedor} />
+              </div>  
 
               <div className="grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-3">
                 <InfoTrabajoItem

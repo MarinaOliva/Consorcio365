@@ -16,12 +16,16 @@ function VistaEdicionTrabajo({
   trabajo,
   estadoEditable,
   onEstadoChange,
+  onMontoChange,
+  onProveedorChange,
+  proveedoresDisponibles = [],
   onVolver,
   onGuardar,
 }) {
   const detalle = obtenerDetalleTrabajo({
     ...trabajo,
     estado: estadoEditable,
+    presupuesto: trabajo.presupuesto,
   });
 
   return (
@@ -68,11 +72,56 @@ function VistaEdicionTrabajo({
                 <InfoTrabajoItem label="ID" value={`#${detalle.codigoTrabajo}`} />
                 <InfoTrabajoItem label="Edificio" value={detalle.edificio} />
                 <InfoTrabajoItem label="Unidad" value={detalle.unidad} />
-                <InfoTrabajoItem
-                  label="Presupuesto"
-                  value={detalle.presupuesto}
+                <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase text-textMuted">
+                Presupuesto
+                </p>
+                <div className="flex items-center gap-1">
+                <span className="text-sm font-bold text-textMain">$</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={trabajo.presupuesto ?? 0}
+                  onChange={(e) => onMontoChange?.(Number(e.target.value))}
+                  className="
+                    w-28 rounded-md border border-slate-300 bg-white px-2 py-1
+                    text-sm font-bold text-textMain
+                    outline-none transition
+                    focus:border-primary focus:ring-2 focus:ring-primary/20
+                  "
                 />
+                </div>
               </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-x-5 gap-y-4 md:grid-cols-2">
+              <div className="space-y-1">
+              <p className="text-[10px] font-bold uppercase text-textMuted">
+                Proveedor
+              </p>
+              <select
+                value={trabajo.proveedorId || ""}
+                onChange={(e) => onProveedorChange?.(e.target.value)}
+                className="
+                  w-full rounded-md border border-slate-300 bg-white px-2 py-1
+                  text-sm font-bold text-textMain
+                  outline-none transition
+                  focus:border-primary focus:ring-2 focus:ring-primary/20
+                "
+              >
+                <option value="">Sin proveedor asignado</option>
+                {proveedoresDisponibles.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.nombre} {p.apellido}
+                    {p.proveedorDetalle?.especialidad
+                      ? ` — ${p.proveedorDetalle.especialidad}`
+                      : ""}
+                  </option>
+                ))}
+              </select>
+              </div>
+            </div>
 
               <div className="grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-3">
                 <InfoTrabajoItem

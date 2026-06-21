@@ -21,6 +21,8 @@ function Trabajos() {
     proveedoresDisponibles,
     trabajosFiltrados,
     totalTrabajos,
+    proveedoresActivos,
+    incidenciasActivas,
 
     trabajoSeleccionado,
     trabajoEnEdicion,
@@ -40,7 +42,9 @@ function Trabajos() {
     handleVolverListado,
     handleEditarTrabajo,
     handleChangeEstadoTrabajo,
+    handleChangeMontoTrabajo,
     handleGuardarCambiosTrabajo,
+    handleChangeProveedorTrabajo,
 
     handleNuevoTrabajo,
     handleCerrarCrearTrabajo,
@@ -73,6 +77,9 @@ function Trabajos() {
           trabajo={trabajoEditado}
           estadoEditable={trabajoEditado.estado}
           onEstadoChange={handleChangeEstadoTrabajo}
+          onMontoChange={handleChangeMontoTrabajo}
+          onProveedorChange={handleChangeProveedorTrabajo}
+          proveedoresDisponibles={proveedoresActivos}
           onVolver={() => {
             handleVolverListado();
           }}
@@ -102,10 +109,10 @@ function Trabajos() {
         isOpen={isCrearTrabajoOpen}
         onClose={handleCerrarCrearTrabajo}
         onCreate={handleCrearTrabajo}
-        incidencia={null}
         values={trabajoDraft}
         onChange={handleChangeTrabajoDraft}
-        modo="manual"
+        incidenciasDisponibles={incidenciasActivas}
+        proveedoresDisponibles={proveedoresActivos}
       />
 
       <SuccessModal
