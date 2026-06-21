@@ -16,6 +16,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [recordarme, setRecordarme] = useState(true);
 
   const [showNuevaContrasena, setShowNuevaContrasena] = useState(false);
   const [showConfirmacion, setShowConfirmacion] = useState(false);
@@ -42,7 +43,7 @@ function Login() {
 	setLoading(true);
 
 	try {
-  	const user = await login(email, password);
+  	const user = await login(email, password, recordarme);
 
   	// Primer login - mostrar modal obligatorio
   	if (user.debeCambiarPassword) {
@@ -116,6 +117,8 @@ function Login() {
         	<label className="flex items-center gap-2">
           	<input
             	type="checkbox"
+				checked={recordarme}
+				onChange={(e) => setRecordarme(e.target.checked)} 
             	className="
               	w-4 h-4
               	rounded

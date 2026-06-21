@@ -20,40 +20,71 @@ function formatearMonto(valor) {
 }
 
 function EvidenciaCard({ evidencia, index }) {
-  const esArchivo = typeof evidencia === "object" && evidencia?.name;
-  const nombre = esArchivo ? evidencia.name : `Evidencia ${index + 1}`;
-  const esPdf = nombre.toLowerCase().endsWith(".pdf");
+  const esArchivoLocal = typeof evidencia === "object" && evidencia?.name;
+  const url = esArchivoLocal ? null : evidencia;
+  const nombre = esArchivoLocal
+	? evidencia.name
+	: `Evidencia ${index + 1}`;
+  const esPdf = String(url || nombre).toLowerCase().endsWith(".pdf");
 
   if (esPdf) {
-    return (
-      <div
-        className="
-          flex h-24 min-w-[120px] flex-col items-center justify-center rounded-lg
-          border border-red-200 bg-red-50 text-red-500
-        "
-      >
-        <FileText size={24} />
-        <span className="mt-1 text-xs font-black uppercase">PDF</span>
-        <span className="mt-1 max-w-[90px] truncate text-[10px] text-red-300">
-          {nombre}
-        </span>
-      </div>
-    );
+	return (
+  	<button
+    	type="button"
+    	onClick={() => url && window.open(url, "_blank", "noopener,noreferrer")}
+    	disabled={!url}
+    	className="
+      	flex h-24 min-w-[120px] flex-col items-center justify-center rounded-lg
+      	border border-red-200 bg-red-50 text-red-500
+      	transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60
+    	"
+  	>
+    	<FileText size={24} />
+    	<span className="mt-1 text-xs font-black uppercase">PDF</span>
+    	<span className="mt-1 max-w-[90px] truncate text-[10px] text-red-400">
+      	{nombre}
+    	</span>
+  	</button>
+	);
   }
 
+  if (url) {
+	return (
+  	<button
+    	type="button"
+    	onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
+    	className="
+      	relative flex h-24 min-w-[120px] flex-col overflow-hidden rounded-lg
+      	border border-border/70 bg-white text-left shadow-sm transition
+      	hover:shadow-md
+    	"
+  	>
+    	<div
+      	className="h-full w-full bg-cover bg-center"
+      	style={{ backgroundImage: `url(${url})` }}
+    	/>
+    	<div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-white/75 px-2 py-1 text-[10px] font-semibold text-textMain">
+      	<ImageIcon size={13} className="text-primary" />
+      	<span className="truncate">{nombre}</span>
+    	</div>
+  	</button>
+	);
+  }
+
+  // Fallback: archivo local sin URL
   return (
-    <div
-      className="
-        flex h-24 min-w-[120px] items-end overflow-hidden rounded-lg
-        border border-border/70 bg-gradient-to-br
-        from-slate-100 via-slate-200 to-slate-300 p-2
-      "
-    >
-      <div className="flex w-full items-center gap-1.5 rounded-md bg-white/75 px-2 py-1 text-[10px] font-semibold text-textMain">
-        <ImageIcon size={13} className="text-primary" />
-        <span className="truncate">{nombre}</span>
-      </div>
-    </div>
+	<div
+  	className="
+    	flex h-24 min-w-[120px] items-end overflow-hidden rounded-lg
+    	border border-border/70 bg-gradient-to-br
+    	from-slate-100 via-slate-200 to-slate-300 p-2
+  	"
+	>
+  	<div className="flex w-full items-center gap-1.5 rounded-md bg-white/75 px-2 py-1 text-[10px] font-semibold text-textMain">
+    	<ImageIcon size={13} className="text-primary" />
+    	<span className="truncate">{nombre}</span>
+  	</div>
+	</div>
   );
 }
 
@@ -121,12 +152,12 @@ function ModalDetalleTrabajoProveedor({
             </div>
 
             <div className="grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-6">
-              <ItemInfo label="ID" value={`#TRB-${String(trabajo.id).padStart(4, "0")}`} />
-              <ItemInfo label="Edificio" value={trabajo.ubicacion || "Torre Norte"} />
-              <ItemInfo label="Unidad" value={trabajo.unidad || "5B"} />
+              <ItemInfo label="ID" value={`#TRB-${String(trabajo.id).slice(-4)}`} />
+              <ItemInfo label="Edificio" value={trabajo.edificio} />
+              <ItemInfo label="Unidad" value={trabajo.unidad} />
               <ItemInfo label="Presupuesto" value={formatearMonto(trabajo.monto)} />
-              <ItemInfo label="Fecha Inicio" value={trabajo.fechaAsignacion || "-"} />
-              <ItemInfo label="Fecha Finalización" value={trabajo.fechaFinalizacion || "-"} />
+              <ItemInfo label="Fecha Inicio" value={trabajo.fechaInicio} />
+              <ItemInfo label="Fecha Finalización" value={trabajo.fechaFinalizacion} />
             </div>
 
             <div>

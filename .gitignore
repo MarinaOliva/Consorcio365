@@ -1,2 +1,18 @@
+# Carpetas que nunca van al repo 
+node_modules/ 
+*/node_modules/
+
+ # Tests manuales locales 
 test/test-socket.html
 test/test-socketW.html
+
+ # Variables de entorno 
+ .env 
+ */.env 
+
+ # Logs 
+ *.log 
+ logs/ 
+ 
+ # OS 
+ .DS_Store

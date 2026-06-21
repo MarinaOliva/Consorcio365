@@ -14,6 +14,8 @@ function Unidades() {
     setBusqueda,
     unidadesFiltradas,
     totalUnidades,
+    loading,
+    error,
     unidadSeleccionada,
     unidadEnEdicion,
     isSuccessOpen,
@@ -37,31 +39,37 @@ function Unidades() {
   return (
     <ContenedorPanelPorRol titulo="Unidades" subtitulo={subtitulo}>
       <section className="mx-auto max-w-[1120px] space-y-5">
-        {unidadEnEdicion ? (
+       {loading ? (
+          <p className="py-6 text-sm text-textMuted">Cargando unidades...</p>
+        ) : error ? (
+          <div className="rounded-md border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-semibold text-red-600">{error}</p>
+          </div>
+        ) : unidadEnEdicion ? (
           <VistaEdicionUnidad
-            unidad={unidadEnEdicion}
-            onVolver={cerrarVistaUnidad}
-            onActualizarCampo={actualizarCampoUnidad}
-            onActualizarRelacionUsuario={actualizarRelacionUsuario}
-            onFinalizarRelacionUsuario={finalizarRelacionUsuario}
-            onGuardar={guardarCambiosUnidad}
-            onCancelar={cerrarVistaUnidad}
+          unidad={unidadEnEdicion}
+          onVolver={cerrarVistaUnidad}
+          onActualizarCampo={actualizarCampoUnidad}
+          onActualizarRelacionUsuario={actualizarRelacionUsuario}
+          onFinalizarRelacionUsuario={finalizarRelacionUsuario}
+          onGuardar={guardarCambiosUnidad}
+          onCancelar={cerrarVistaUnidad}
           />
         ) : unidadSeleccionada ? (
           <VistaDetalleUnidad
-            unidad={unidadSeleccionada}
-            onVolver={cerrarVistaUnidad}
+          unidad={unidadSeleccionada}
+          onVolver={cerrarVistaUnidad}
           />
         ) : (
           <VistaListadoUnidades
-            estadoFiltro={estadoFiltro}
-            busqueda={busqueda}
-            unidades={unidadesFiltradas}
-            totalUnidades={totalUnidades}
-            onCambiarEstado={setEstadoFiltro}
-            onCambiarBusqueda={setBusqueda}
-            onVerDetalle={abrirDetalleUnidad}
-            onEditar={abrirEdicionUnidad}
+          estadoFiltro={estadoFiltro}
+          busqueda={busqueda}
+          unidades={unidadesFiltradas}
+          totalUnidades={totalUnidades}
+          onCambiarEstado={setEstadoFiltro}
+          onCambiarBusqueda={setBusqueda}
+          onVerDetalle={abrirDetalleUnidad}
+          onEditar={abrirEdicionUnidad}
           />
         )}
       </section>

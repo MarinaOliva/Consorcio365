@@ -1,4 +1,4 @@
-import { Wrench, MapPin, Calendar, DollarSign, Eye } from "lucide-react";
+import { Wrench, MapPin, Calendar, Eye } from "lucide-react";
 import Card from "../ui/Card";
 import StatusBadge from "../dashboard/StatusBadge";
 
@@ -35,7 +35,6 @@ function TrabajoRow({ trabajo, onVerDetalle }) {
 								Asignado: {trabajo.fechaAsignacion}
 							</span>
 							<span className="inline-flex items-center gap-1">
-								<DollarSign size={11} />
 								${trabajo.monto.toLocaleString("es-AR")}
 							</span>
 						</div>

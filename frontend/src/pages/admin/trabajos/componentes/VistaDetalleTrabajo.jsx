@@ -120,7 +120,7 @@ function VistaDetalleTrabajo({ trabajo, onVolver }) {
                 if (detalle.incidenciaOrigen.tipo === "mantenimiento") {
                   window.location.href = `/admin/mantenimiento/${detalle.incidenciaOrigen.idDestino}`;
                 } else {
-                  window.location.href = `/admin/incidencias/${detalle.incidenciaOrigen.idDestino}`;
+                  window.location.href = `/admin/incidencias?detalle=${detalle.incidenciaOrigen.idDestino}`; 
                 }
                 }}
                 className="

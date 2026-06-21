@@ -151,7 +151,11 @@ const listar = async (query, usuario) => {
 
   const trabajos = await Trabajo.find(filtro)
 	.populate('proveedorId', 'nombre apellido email proveedorDetalle.especialidad')
-	.populate('incidenciaId', 'titulo categoria estado')
+	.populate({
+		path: 'incidenciaId',
+		select: 'titulo categoria estado espacio edificioId',
+		populate: { path: 'edificioId', select: 'nombre direccion' }
+		})
 	.populate({
 	path: 'instanciaMantenimientoId',
 	select: 'fechaProgramada estado planId',
@@ -173,18 +177,22 @@ const listar = async (query, usuario) => {
 const obtener = async (id, usuario) => {
   const trabajo = await Trabajo.findById(id)
 	.populate('proveedorId', 'nombre apellido email telefono proveedorDetalle')
-	.populate('incidenciaId', 'titulo descripcion categoria estado ocupanteId')
 	.populate({
-	path: 'instanciaMantenimientoId',
-	select: 'fechaProgramada estado planId',
-	populate: {
-    	path: 'planId',
-    	select: 'tarea edificioId',
-    	populate: {
-        	path: 'edificioId',
-        	select: 'nombre direccion',
-    	},
-	},
+		path: 'incidenciaId',
+		select: 'titulo descripcion categoria estado ocupanteId espacio edificioId',
+		populate: { path: 'edificioId', select: 'nombre direccion' }
+		})
+	.populate({
+		path: 'instanciaMantenimientoId',
+		select: 'fechaProgramada estado planId',
+		populate: {
+			path: 'planId',
+			select: 'tarea edificioId',
+			populate: {
+				path: 'edificioId',
+				select: 'nombre direccion',
+			},
+		},
 })
 	.populate('historialEstados.creadoPorId', 'nombre apellido tipo');
 
