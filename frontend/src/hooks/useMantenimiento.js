@@ -5,6 +5,7 @@ import {
   createPlan as createPlanService,
 } from "../services/mantenimientoService";
 import { getEdificios } from "../services/edificiosService";
+import { mostrarToastError } from "../utils/toasts";
 
 function normalizarTexto(valor) {
   return String(valor ?? "").toLowerCase().trim();
@@ -154,7 +155,7 @@ export function useMantenimiento() {
   const manejarCrearPlan = async (datosFormulario) => {
 	const edificioId = edificios[0]?._id;
 	if (!edificioId) {
-  	alert("No hay edificios disponibles");
+  	mostrarToastError("No hay edificios disponibles");
   	return;
 	}
 
@@ -175,7 +176,7 @@ export function useMantenimiento() {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo crear el plan";
-  	alert(msg);
+  	 mostrarToastError(msg);
 	}
   };
 

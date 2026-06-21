@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { mostrarToastError } from "../utils/toasts";
 
 import {
   getIncidencias,
@@ -435,7 +436,7 @@ export function useIncidenciasAdmin() {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo guardar la incidencia";
-  	alert(msg);
+  	 mostrarToastError(msg);
 	}
   };
 
@@ -478,7 +479,7 @@ export function useIncidenciasAdmin() {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo cancelar la incidencia";
-  	alert(msg);
+  	 mostrarToastError(msg);
 	}
   };
 
@@ -510,11 +511,11 @@ export function useIncidenciasAdmin() {
   const handleCrearTrabajoDesdeIncidencia = async () => {
 	const incidenciaContexto = incidenciaSeleccionada || incidenciaEnEdicion;
 	if (!incidenciaContexto?.id) {
-  	alert("No hay una incidencia seleccionada.");
+  	mostrarToastError("No hay una incidencia seleccionada.");
   	return;
 	}
 	if (!trabajoDraft.descripcion?.trim()) {
-  	alert("Ingresá la descripción del trabajo.");
+  	mostrarToastError("Ingresá la descripción del trabajo.");
   	return;
 	}
 
@@ -537,7 +538,7 @@ export function useIncidenciasAdmin() {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo crear el trabajo";
-  	alert(msg);
+  	 mostrarToastError(msg);
 	}
   };
 
@@ -590,23 +591,23 @@ const handleChangeNuevaIncidencia = (campo, valor) => {
 
 const handleCrearNuevaIncidencia = async () => {
   if (!nuevaIncidenciaDraft.titulo?.trim()) {
-	alert("Ingresá un título.");
+	mostrarToastError("Ingresá un título.");
 	return;
   }
   if (!nuevaIncidenciaDraft.descripcion?.trim()) {
-	alert("Ingresá una descripción.");
+	mostrarToastError("Ingresá una descripción.");
 	return;
   }
   if (!nuevaIncidenciaDraft.categoria) {
-	alert("Seleccioná una categoría.");
+	mostrarToastError("Seleccioná una categoría.");
 	return;
   }
   if (!nuevaIncidenciaDraft.ocupanteId) {
-	alert("Seleccioná el ocupante reportante.");
+	mostrarToastError("Seleccioná el ocupante reportante.");
 	return;
   }
   if (!nuevaIncidenciaDraft.edificioId) {
-	alert("Seleccioná el edificio.");
+	mostrarToastError("Seleccioná el edificio.");
 	return;
   }
 
@@ -629,7 +630,7 @@ const handleCrearNuevaIncidencia = async () => {
   	err?.response?.data?.message ||
   	err?.message ||
   	"No se pudo crear la incidencia";
-	alert(msg);
+	mostrarToastError(msg);
   }
 };
 

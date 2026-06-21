@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { mostrarToastError } from "../utils/toasts";
 import {
   getPlan,
   createInstancia,
@@ -249,7 +249,7 @@ export function usePlanDetalle(planId) {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo activar el plan";
-  	alert(msg);
+  	 mostrarToastError(msg);
 	}
   };
 
@@ -269,7 +269,7 @@ export function usePlanDetalle(planId) {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo crear la instancia";
-  	alert(msg);
+  	 mostrarToastError(msg);
 	}
   };
 
@@ -293,7 +293,7 @@ export function usePlanDetalle(planId) {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo cerrar la instancia";
-  	alert(msg);
+		mostrarToastError(msg);
 	}
   };
 
@@ -335,11 +335,11 @@ export function usePlanDetalle(planId) {
 
   const handleCrearTrabajoDesdePlan = async () => {
 	if (!instanciaActual?._id) {
-  	alert("No hay una instancia activa para asociar al trabajo.");
+  	mostrarToastError("No hay una instancia activa para asociar al trabajo.");
   	return;
 	}
 	if (!trabajoDraft.descripcion?.trim()) {
-  	alert("Ingresá la descripción del trabajo.");
+  	mostrarToastError("Ingresá la descripción del trabajo.");
   	return;
 	}
 
@@ -362,7 +362,7 @@ export function usePlanDetalle(planId) {
     	err?.response?.data?.message ||
     	err?.message ||
     	"No se pudo crear el trabajo";
-  	alert(msg);
+		mostrarToastError(msg);
 	}
   };
 
