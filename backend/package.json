@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "test": "jest"
+    "test": "jest --testPathIgnorePatterns=selenium",
+    "test:selenium": "jest --testPathPatterns=selenium --testTimeout=60000" 
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "jest": "^30.4.2",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "selenium-webdriver": "^4.45.0"
   }
 }
