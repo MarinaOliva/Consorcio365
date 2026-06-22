@@ -5,6 +5,7 @@ import ContenedorPanelPorRol from "../../../components/dashboard/ContenedorPanel
 import SectionCard from "../../../components/dashboard/SectionCard";
 import Button from "../../../components/ui/Button";
 import SuccessModal from "../../../components/shared/SuccessModal";
+import ModalConfirmacion from "../../../components/shared/ModalConfirmacion";
 
 import {
   getDocumentos,
@@ -278,6 +279,10 @@ function DocumentosAdmin() {
   const [modalCargarAbierto, setModalCargarAbierto] = useState(false);
   const [modalExitoAbierto, setModalExitoAbierto] = useState(false);
 
+  const [isConfirmarEliminacionOpen, setIsConfirmarEliminacionOpen] = useState(false);
+  const [documentoAEliminar, setDocumentoAEliminar] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("Documento subido con éxito");
+
   const [documentoDraft, setDocumentoDraft] = useState(ESTADO_DOCUMENTO_INICIAL);
   const [errores, setErrores] = useState({});
   const [arrastreActivo, setArrastreActivo] = useState(false);
@@ -469,6 +474,7 @@ function DocumentosAdmin() {
     setDocumentos((prev) => [documentoCreado, ...prev]);
     setModalCargarAbierto(false);
     resetearFormulario();
+    setSuccessMessage("Documento subido con éxito");
     setModalExitoAbierto(true);
     } catch (err) {
     const msg =
@@ -488,17 +494,41 @@ function DocumentosAdmin() {
     setModalExitoAbierto(false);
   };
 
-  const eliminarDocumento = async (documento) => {
+  const eliminarDocumento = (documento) => {
+    setDocumentoAEliminar(documento);
+    setIsConfirmarEliminacionOpen(true);
+  };
+
+  const cancelarEliminacionDocumento = () => {
+    setDocumentoAEliminar(null);
+    setIsConfirmarEliminacionOpen(false);
+  };
+
+  const confirmarEliminacionDocumento = async () => {
+    if (!documentoAEliminar) return;
+
     try {
-      await deleteDocumento(documento._id);
-      setDocumentos((prev) => prev.filter((item) => item._id !== documento._id));
+      await deleteDocumento(documentoAEliminar._id);
+
+      setDocumentos((prev) =>
+        prev.filter((item) => item._id !== documentoAEliminar._id)
+      );
+
+      setIsConfirmarEliminacionOpen(false);
+      setDocumentoAEliminar(null);
+
+      setSuccessMessage("Documento eliminado con éxito");
+      setModalExitoAbierto(true);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
         err?.message ||
         "No se pudo eliminar el documento";
 
-     mostrarToastError(msg);
+      setIsConfirmarEliminacionOpen(false);
+      setDocumentoAEliminar(null);
+
+      mostrarToastError(msg);
     }
   };
 
@@ -562,8 +592,38 @@ function DocumentosAdmin() {
       <SuccessModal
         isOpen={modalExitoAbierto}
         onClose={cerrarModalExito}
-        message="Documento subido con éxito"
+        message={successMessage}
       />
+
+      <ModalConfirmacion
+        isOpen={isConfirmarEliminacionOpen}
+        title="Confirmar eliminación"
+        message={
+          documentoAEliminar
+          ? `¿Querés eliminar el documento "${documentoAEliminar.nombre}"?`
+          : "¿Querés continuar con esta acción?"
+        }
+        confirmLabel="Eliminar documento"
+        cancelLabel="Cancelar"
+        variant="danger"
+        onConfirm={confirmarEliminacionDocumento}
+        onClose={cancelarEliminacionDocumento}
+        details={
+          documentoAEliminar
+          ? [
+              { label: "Documento", value: documentoAEliminar.nombre || "-" },
+              { label: "Categoría", value: documentoAEliminar.categoria || "-" },
+              {
+                label: "Fecha",
+                value: documentoAEliminar.createdAt
+                  ? new Date(documentoAEliminar.createdAt).toLocaleDateString("es-AR")
+                  : "-",
+              },
+            ]
+          : []
+        }
+      />
+
     </ContenedorPanelPorRol>
   );
 }
