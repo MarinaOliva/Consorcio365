@@ -1,5 +1,8 @@
 import FiltrosIncidencias from "./FiltrosIncidencias";
 import TablaIncidencias from "./TablaIncidencias";
+import { Plus } from "lucide-react";
+import Button from "../../../../components/ui/Button";
+
 
 function VistaListadoIncidencias({
   edificioFiltro,
@@ -24,18 +27,15 @@ function VistaListadoIncidencias({
   return (
     <>
       <div className="flex justify-end">
-  	<button
+  	<Button
     	type="button"
+      variant= "elevated"
     	onClick={onNuevaIncidencia}
-    	className="
-      	inline-flex items-center gap-2 rounded-lg bg-primary
-      	px-4 py-2 text-sm font-bold text-white shadow-sm
-      	transition hover:bg-primaryHover
-      	focus:outline-none focus:ring-2 focus:ring-primary/30
-    	"
+    	
   	>
-    	+ Nueva incidencia
-  	</button>
+      <Plus size={16} className="mr-1.5" />
+    	Nueva incidencia
+  	</Button>
 	</div>
       <FiltrosIncidencias
         edificioFiltro={edificioFiltro}

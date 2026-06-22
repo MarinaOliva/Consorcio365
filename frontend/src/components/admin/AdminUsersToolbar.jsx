@@ -1,4 +1,5 @@
 import Button from "../ui/Button";
+import { Plus } from "lucide-react";
 
 function AdminUsersToolbar({
   search,
@@ -33,7 +34,13 @@ function AdminUsersToolbar({
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-textMain"
+          className="
+            rounded-lg border border-border bg-white
+            px-3 py-2 text-sm text-textMain
+            outline-none transition
+            focus:border-primary focus:ring-2 focus:ring-primary/20
+          "
+
         >
           <option value="todos">Todos los roles</option>
           <option value="administrador">Administrador</option>
@@ -44,7 +51,13 @@ function AdminUsersToolbar({
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-textMain"
+          className="
+            rounded-lg border border-border bg-white
+            px-3 py-2 text-sm text-textMain
+            outline-none transition
+            focus:border-primary focus:ring-2 focus:ring-primary/20
+          "
+
         >
           <option value="todos">Todos los estados</option>
           <option value="ACTIVO">Activo</option>
@@ -53,7 +66,12 @@ function AdminUsersToolbar({
         </select>
       </div>
 
-      <Button variant="elevated" onClick={onNuevoUsuario}>
+      <Button 
+        variant="elevated"
+        onClick={onNuevoUsuario}
+        className="gap-2"
+      >
+        <Plus size={16} />
         Nuevo usuario
       </Button>
     </div>

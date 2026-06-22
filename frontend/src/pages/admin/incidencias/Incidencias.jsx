@@ -191,19 +191,19 @@ function Incidencias() {
     	message="Trabajo creado con éxito"
   	/>
 	<AdminNuevaIncidenciaModal
-  	isOpen={modalNuevaIncidenciaAbierto}
- 	onClose={cerrarModalNuevaIncidencia}
-	onCreate={handleCrearNuevaIncidencia}
-	values={nuevaIncidenciaDraft}
-	onChange={handleChangeNuevaIncidencia}
-	edificios={edificios}		
-	ocupantesDisponibles={ocupantesActivos}
+		isOpen={modalNuevaIncidenciaAbierto}
+		onClose={cerrarModalNuevaIncidencia}
+		onCreate={handleCrearNuevaIncidencia}
+		values={nuevaIncidenciaDraft}
+		onChange={handleChangeNuevaIncidencia}
+		edificios={edificios}		
+		ocupantesDisponibles={ocupantesActivos}
 	/>
 
 	<SuccessModal
-	isOpen={modalIncidenciaCreadaAbierto}
-	onClose={cerrarModalIncidenciaCreada}
-	message="Incidencia creada con éxito"
+		isOpen={modalIncidenciaCreadaAbierto}
+		onClose={cerrarModalIncidenciaCreada}
+		message="Incidencia creada con éxito"
 	/>
 
 	</ContenedorPanelPorRol>
