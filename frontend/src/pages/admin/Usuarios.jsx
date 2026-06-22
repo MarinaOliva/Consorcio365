@@ -393,6 +393,7 @@ const handleView = (row) => {
           {!loading && !error && (
             <AdminUsersTable
               users={tableRows}
+              totalUsers={users.length}
               onEdit={handleEdit}
               onView={handleView}
               onDelete={handleDelete}
