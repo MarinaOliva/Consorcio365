@@ -1,3 +1,5 @@
+require('dns').setDefaultResultOrder('ipv4first'); 
+
 require('dotenv').config();
 const http = require('http');
 const app  = require('./src/app');
