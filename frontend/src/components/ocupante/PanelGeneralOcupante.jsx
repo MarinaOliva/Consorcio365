@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import SuccessModal from "../shared/SuccessModal";
@@ -7,133 +7,125 @@ import OcupanteReclamosList from "./OcupanteReclamosList";
 import OcupanteAvisosList from "./OcupanteAvisosList";
 import ModalNuevoReclamo from "./ModalNuevoReclamo";
 
-import {
-  miUnidadMock,
-  reclamosMock,
-  avisosMock,
-} from "../../data/ocupanteDashboardData";
-
-const RECLAMO_INICIAL = {
-  titulo: "",
-  descripcion: "",
-  ubicacion: "",
-  categoria: "",
-  prioridad: "",
-  archivos: [],
-};
-
-function formatearFechaActual() {
-  return new Date().toLocaleDateString("es-AR");
-}
-
-function mapearPrioridadAEstado(prioridad) {
-  const valor = String(prioridad || "").toLowerCase();
-
-  if (valor === "alta") return "Abierta";
-  if (valor === "media") return "Abierta";
-  return "Abierta";
-}
+import { useReclamosOcupante } from "../../hooks/useReclamosOcupante";
+import { getAvisos } from "../../services/avisosService";
 
 function PanelGeneralOcupante() {
   const navigate = useNavigate();
 
-  const [reclamos, setReclamos] = useState(reclamosMock);
-  const [avisos] = useState(avisosMock);
+  const {
+	reclamosFiltrados,
+	loading: loadingReclamos,
+	error: errorReclamos,
+	unidadActual,
 
-  const [isNuevoReclamoOpen, setIsNuevoReclamoOpen] = useState(false);
-  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+	isNuevoReclamoOpen,
+	handleAbrirNuevoReclamo,
+	handleCerrarNuevoReclamo,
+	formReclamo,
+	handleChangeReclamo,
+	handleCrearReclamo,
 
-  const [formReclamo, setFormReclamo] = useState(RECLAMO_INICIAL);
+	isSuccessOpen,
+	cerrarSuccess,
+  } = useReclamosOcupante();
 
-  const unidadActual = useMemo(() => {
-    return {
-      ...miUnidadMock,
-      ocupante: "María Lozana",
-      edificio: miUnidadMock.torre,
-    };
+  const [avisos, setAvisos] = useState([]);
+
+  useEffect(() => {
+	let activo = true;
+	getAvisos()
+  	.then((data) => {
+    	if (!activo) return;
+    	setAvisos(data || []);
+  	})
+  	.catch(() => {
+    	// Si falla, dejamos la lista vacía
+  	});
+	return () => {
+  	activo = false;
+	};
   }, []);
 
-  const handleAbrirNuevoReclamo = () => {
-    setFormReclamo(RECLAMO_INICIAL);
-    setIsNuevoReclamoOpen(true);
-  };
+  // Adaptamos los avisos al formato que espera OcupanteAvisosList
+  const avisosAdaptados = useMemo(() => {
+	return avisos.slice(0, 3).map((a) => ({
+  	id: a._id,
+  	titulo: a.titulo,
+  	descripcion: a.cuerpo || "",
+  	fecha: a.fechaPublicacion
+    	? new Date(a.fechaPublicacion).toLocaleDateString("es-AR")
+    	: "",
+  	prioridad: "media",
+	}));
+  }, [avisos]);
 
-  const handleCerrarNuevoReclamo = () => {
-    setIsNuevoReclamoOpen(false);
-  };
+  // Solo mostramos los 5 reclamos más recientes
+  const reclamosResumen = useMemo(() => {
+	return reclamosFiltrados.slice(0, 5);
+  }, [reclamosFiltrados]);
 
-  const handleChangeReclamo = (campo, valor) => {
-    setFormReclamo((prev) => ({
-      ...prev,
-      [campo]: valor,
-    }));
-  };
+  // Datos de la unidad para mostrar en la card
+  const unidadCard = useMemo(() => {
+	return {
+  	numero: unidadActual?.numero || "—",
+  	piso: "Piso " + unidadActual?.piso || "—",
+  	torre: unidadActual?.edificio || "—",
+  	relacion: "Ocupante",
+	};
+  }, [unidadActual]);
 
-  const handleCrearReclamo = () => {
-    const nuevoReclamo = {
-      id: Date.now(),
-      titulo: formReclamo.titulo,
-      fecha: formatearFechaActual(),
-      estado: mapearPrioridadAEstado(formReclamo.prioridad),
-      descripcion: formReclamo.descripcion,
-      ubicacion: formReclamo.ubicacion,
-      categoria: formReclamo.categoria,
-      prioridad: formReclamo.prioridad,
-      archivos: formReclamo.archivos,
-    };
-
-    setReclamos((prev) => [nuevoReclamo, ...prev]);
-    setIsNuevoReclamoOpen(false);
-    setIsSuccessOpen(true);
-    setFormReclamo(RECLAMO_INICIAL);
-
-    // Más adelante:
-    // await createIncidenciaRequest(...)
-  };
-
-  const handleIrAReclamos = () => {
-    navigate("/ocupante/reclamos");
-  };
-
-  const handleIrAAvisos = () => {
-    navigate("/ocupante/avisos");
-  };
+  const handleIrAReclamos = () => navigate("/ocupante/reclamos");
+  const handleIrAAvisos = () => navigate("/ocupante/avisos");
 
   return (
-    <>
-      <section className="mx-auto max-w-[1120px] space-y-6">
-        <MiUnidadCard unidad={miUnidadMock} />
+	<>
+  	<section className="mx-auto max-w-[1120px] space-y-6">
+    	<MiUnidadCard unidad={unidadCard} />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <OcupanteReclamosList
-            reclamos={reclamos}
-            onNuevo={handleAbrirNuevoReclamo}
-            onVerTodas={handleIrAReclamos}
-          />
+    	{loadingReclamos && (
+      	<p className="py-4 text-sm text-textMuted">Cargando información...</p>
+    	)}
 
-          <OcupanteAvisosList
-            avisos={avisos}
-            onVerTodos={handleIrAAvisos}
-          />
-        </div>
-      </section>
+    	{errorReclamos && !loadingReclamos && (
+      	<div className="rounded-md border border-red-200 bg-red-50 p-4">
+        	<p className="text-sm font-semibold text-red-600">{errorReclamos}</p>
+      	</div>
+    	)}
 
-      <ModalNuevoReclamo
-        isOpen={isNuevoReclamoOpen}
-        onClose={handleCerrarNuevoReclamo}
-        onCreate={handleCrearReclamo}
-        form={formReclamo}
-        onChange={handleChangeReclamo}
-        unidadActual={unidadActual}
-      />
+    	{!loadingReclamos && !errorReclamos && (
+      	<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        	<OcupanteReclamosList
+          	reclamos={reclamosResumen}
+          	onNuevo={handleAbrirNuevoReclamo}
+          	onVerTodas={handleIrAReclamos}
+        	/>
 
-      <SuccessModal
-        isOpen={isSuccessOpen}
-        onClose={() => setIsSuccessOpen(false)}
-        message="Su reclamo ha sido creado con éxito"
-      />
-    </>
+        	<OcupanteAvisosList
+          	avisos={avisosAdaptados}
+          	onVerTodos={handleIrAAvisos}
+        	/>
+      	</div>
+    	)}
+  	</section>
+
+  	<ModalNuevoReclamo
+    	isOpen={isNuevoReclamoOpen}
+    	onClose={handleCerrarNuevoReclamo}
+    	onCreate={handleCrearReclamo}
+    	form={formReclamo}
+    	onChange={handleChangeReclamo}
+    	unidadActual={unidadActual}
+  	/>
+
+  	<SuccessModal
+    	isOpen={isSuccessOpen}
+    	onClose={cerrarSuccess}
+    	message="Su reclamo ha sido creado con éxito"
+  	/>
+	</>
   );
 }
 
 export default PanelGeneralOcupante;
+

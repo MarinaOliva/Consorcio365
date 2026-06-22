@@ -124,19 +124,30 @@ const obtener = async (id) => {
 };
 
 // actualización de datos
-const actualizar = async (id, data) => {
+const actualizar = async (id, data, usuarioAuth) => {
   const usuario = await Usuario.findById(id);
   if (!usuario) throw makeError(404, 'Usuario no encontrado');
 
+
   if (data.email !== undefined && normalizarEmail(data.email) !== usuario.email) {
-    throw makeError(400, 'No se permite cambiar el email del usuario');
+	throw makeError(400, 'No se permite cambiar el email del usuario');
+  }
+  // Si NO es admin, solo puede editar su propio usuario y solo campos básicos
+  const esAdmin = usuarioAuth?.tipo === TIPOS_USUARIO.ADMINISTRADOR;
+
+  if (!esAdmin) {
+	if (usuarioAuth._id.toString() !== id.toString()) {
+  	throw makeError(403, 'No tiene permisos para editar otro usuario');
+	}
   }
 
-  const permitidos = [
-    'nombre', 'apellido', 'telefono', 'tipoDoc', 'numDoc',
-    'tipo', 'estado', 'proveedorDetalle',
-    'debeCambiarPassword'
-  ];
+  const permitidos = esAdmin
+	? [
+    	'nombre', 'apellido', 'telefono', 'tipoDoc', 'numDoc',
+    	'tipo', 'estado', 'proveedorDetalle',
+    	'debeCambiarPassword'
+  	]
+	: ['nombre', 'apellido', 'telefono'];
 
   permitidos.forEach((campo) => {
     if (data[campo] !== undefined) usuario[campo] = data[campo];

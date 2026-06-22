@@ -2,10 +2,9 @@ import { Calendar, Plus } from "lucide-react";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 import StatusBadge from "../dashboard/StatusBadge";
-import { reclamosMock } from "../../data/ocupanteDashboardData";
 
 function OcupanteReclamosList({
-  reclamos = reclamosMock,
+  reclamos = [],
   onNuevo = () => {},
   onVerTodas = () => {},
 }) {

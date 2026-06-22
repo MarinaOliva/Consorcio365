@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "./useAuth";
+import { updateUsuario } from "../services/usersService";
+import { cambiarPasswordRequest } from "../services/passwordService";
 import { mostrarToastError } from "../utils/toasts";
+
 
 function obtenerIniciales(nombreCompleto = "", apellido = "") {
   const nombre = String(nombreCompleto || "").trim();
@@ -205,55 +208,84 @@ export function usePerfil() {
     setSuccessMessage("Imagen de perfil actualizada con éxito");
     setIsSuccessOpen(true);
 
-    // TODO backend:
-    // subir archivo y reemplazar previewUrl por la URL real
+    // Avatar: preview local únicamente. La persistencia queda como mejora futura
+	  // (requiere endpoint nuevo POST /usuarios/:id/avatar + campo avatarUrl en modelo Usuario)
+
   };
 
   const guardarPerfil = async () => {
-    const perfilActualizado = {
-      nombre: formEditar.nombre.trim(),
-      apellido: formEditar.apellido.trim(),
-      telefono: formEditar.telefono.trim(),
-    };
+	if (!user?.id && !user?._id) {
+  	mostrarToastError("No se pudo identificar el usuario");
+  	return;
+	}
 
-    setPerfilLocal((prev) => ({
-      ...prev,
-      ...perfilActualizado,
-    }));
+	const perfilActualizado = {
+  	nombre: formEditar.nombre.trim(),
+  	apellido: formEditar.apellido.trim(),
+  };
+    const telefonoTrim = formEditar.telefono.trim();
+    if (telefonoTrim){
+      perfilActualizado.telefono = telefonoTrim;
+    }
 
-    updateUser?.({
-      name: perfilActualizado.nombre,
-      nombre: perfilActualizado.nombre,
-      apellido: perfilActualizado.apellido,
-      phone: perfilActualizado.telefono,
-      telefono: perfilActualizado.telefono,
-      avatarUrl: perfil.avatarUrl,
-      avatar: perfil.avatarUrl,
-    });
+	try {
+  	// Llamada al back
+  	const userId = user.id || user._id;
+  	const actualizado = await updateUsuario(userId, perfilActualizado);
 
-    setIsEditarPerfilOpen(false);
-    setSuccessMessage("Datos personales actualizados con éxito");
-    setIsSuccessOpen(true);
+  	// Reflejar en el contexto de auth y en el perfil local
+  	setPerfilLocal((prev) => ({
+    	...prev,
+    	...perfilActualizado,
+  	}));
 
-    // TODO backend:
-    // await updatePerfilRequest(...)
+  	updateUser?.({
+    	name: `${perfilActualizado.nombre} ${perfilActualizado.apellido}`.trim(),
+    	nombre: perfilActualizado.nombre,
+    	apellido: perfilActualizado.apellido,
+    	phone: perfilActualizado.telefono,
+    	telefono: perfilActualizado.telefono,
+    	avatarUrl: perfil.avatarUrl,
+    	avatar: perfil.avatarUrl,
+  	});
+
+  	setIsEditarPerfilOpen(false);
+  	setSuccessMessage("Datos personales actualizados con éxito");
+  	setIsSuccessOpen(true);
+	} catch (err) {
+  	const msg =
+    	err?.response?.data?.message ||
+    	err?.message ||
+    	"No se pudieron guardar los cambios";
+  	mostrarToastError(msg);
+	}
   };
 
   const guardarNuevaContrasena = async () => {
-    if (!passwordValida) return;
+	if (!passwordValida) return;
 
-    setIsCambiarContrasenaOpen(false);
-    setSuccessMessage("Contraseña actualizada con éxito");
-    setIsSuccessOpen(true);
+	try {
+  	await cambiarPasswordRequest(
+    	formPassword.contrasenaActual,
+    	formPassword.nuevaContrasena
+  	);
 
-    setFormPassword({
-      contrasenaActual: "",
-      nuevaContrasena: "",
-      confirmarNuevaContrasena: "",
-    });
+  	setIsCambiarContrasenaOpen(false);
+  	setSuccessMessage("Contraseña actualizada con éxito");
+  	setIsSuccessOpen(true);
 
-    // TODO backend:
-    // await changePasswordRequest(...)
+  	setFormPassword({
+    	contrasenaActual: "",
+    	nuevaContrasena: "",
+    	confirmarNuevaContrasena: "",
+  	});
+	} catch (err) {
+  	const msg =
+    	err?.response?.data?.message ||
+    	err?.message ||
+    	"No se pudo cambiar la contraseña";
+  	mostrarToastError(msg);
+	}
   };
 
   return {

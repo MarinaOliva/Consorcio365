@@ -1,6 +1,5 @@
 import { Calendar } from "lucide-react";
 import Card from "../ui/Card";
-import { avisosMock } from "../../data/ocupanteDashboardData";
 
 const PRIORIDAD_BORDER = {
   alta:  "border-l-red-400",
@@ -8,7 +7,7 @@ const PRIORIDAD_BORDER = {
   baja:  "border-l-gray-400",
 };
 
-function OcupanteAvisosList({ avisos = avisosMock, onVerTodos = () => {} }) {
+function OcupanteAvisosList({ avisos = [], onVerTodos = () => {} }) {
   return (
 	<Card className="border-secondary/70 bg-white p-4 shadow-[3px_5px_8px_rgba(7,40,48,0.25)]">
   	{/* Header */}

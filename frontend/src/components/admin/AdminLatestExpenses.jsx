@@ -1,9 +1,8 @@
 import SectionCard from "../dashboard/SectionCard";
 import DataTable from "../dashboard/DataTable";
 import StatusBadge from "../dashboard/StatusBadge";
-import { adminExpenseRows } from "../../data/adminDashboardData";
 
-function AdminLatestExpenses() {
+function AdminLatestExpenses({ gastos = [] }) {
   const columns = [
     {
       key: "description",
@@ -50,12 +49,13 @@ function AdminLatestExpenses() {
   ];
 
   return (
-    <SectionCard title="Últimos Gastos">
-      <DataTable
-        columns={columns}
-        rows={adminExpenseRows}
-      />
-    </SectionCard>
+	<SectionCard title="Últimos Gastos">
+  	{gastos.length > 0 ? (
+    	<DataTable columns={columns} rows={gastos} />
+  	) : (
+    	<p className="py-4 text-sm text-textMuted">No hay gastos recientes.</p>
+  	)}
+	</SectionCard>
   );
 }
 

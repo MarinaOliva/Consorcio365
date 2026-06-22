@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "jest --testPathIgnorePatterns=selenium",
+    "test:selenium": "jest --testPathPatterns=selenium --testTimeout=60000" 
   },
   "keywords": [],
   "author": "",
@@ -24,6 +26,8 @@
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
+    "selenium-webdriver": "^4.45.0"
   }
 }

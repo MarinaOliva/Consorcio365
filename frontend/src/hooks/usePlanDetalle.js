@@ -6,6 +6,7 @@ import {
   createInstancia,
   cambiarEstadoInstancia,
   updatePlan,
+  desactivarPlan,
 } from "../services/mantenimientoService";
 
 import { getTrabajos, createTrabajo } from "../services/trabajosService";
@@ -41,13 +42,15 @@ export function usePlanDetalle(planId) {
   const [instanciasConTrabajo, setInstanciasConTrabajo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  
   // Modales
   const [modalConfirmacionAbierto, setModalConfirmacionAbierto] = useState(false);
   const [modalExitoActivacionAbierto, setModalExitoActivacionAbierto] = useState(false);
   const [modalCerrarInstanciaAbierto, setModalCerrarInstanciaAbierto] = useState(false);
   const [modalExitoCerrarAbierto, setModalExitoCerrarAbierto] = useState(false);
   const [modalInstanciaCreadaAbierto, setModalInstanciaCreadaAbierto] = useState(false);
+  const [modalConfirmacionDesactivacionAbierto, setModalConfirmacionDesactivacionAbierto] = useState(false);
+  const [modalExitoDesactivacionAbierto, setModalExitoDesactivacionAbierto] = useState(false);
 
   // Calendario
   const [fechaInstancia, setFechaInstancia] = useState("");
@@ -75,16 +78,21 @@ export function usePlanDetalle(planId) {
   	const trabajos = await getTrabajos();
 
   	const instancias = (ultimasInstancias || []).map((inst) => {
-    	const trabajo = trabajos.find(
-      	(t) =>
-        	(t.instanciaMantenimientoId?._id || t.instanciaMantenimientoId) === inst._id
-    	);
+  // Buscar trabajo activo (no cancelado) de esta instancia
+	const trabajo = trabajos.find(
+		(t) => {
+		const matchInstancia =
+			(t.instanciaMantenimientoId?._id || t.instanciaMantenimientoId) === inst._id;
+		const noCancelado = t.estado !== "CANCELADO";
+		return matchInstancia && noCancelado;
+		}
+	);
 
-    	return {
-      	...inst,
-      	trabajo: trabajo || null,
-    	};
-  	});
+	return {
+		...inst,
+		trabajo: trabajo || null,
+	};
+	});
 
   	setPlanRaw(plan);
   	setProximaFechaSugerida(proximaFechaSugerida);
@@ -258,6 +266,34 @@ export function usePlanDetalle(planId) {
 	cargarDetalle();
   };
 
+  // Desactivar plan
+	const abrirConfirmacionDesactivacion = () =>
+	setModalConfirmacionDesactivacionAbierto(true);
+
+	const cerrarConfirmacionDesactivacion = () =>
+	setModalConfirmacionDesactivacionAbierto(false);
+
+	const confirmarDesactivacionPlan = async () => {
+	try {
+		await desactivarPlan(planId);
+		setModalConfirmacionDesactivacionAbierto(false);
+		setModalExitoDesactivacionAbierto(true);
+	} catch (err) {
+		const msg =
+		err?.response?.data?.message ||
+		err?.message ||
+		"No se pudo desactivar el plan";
+		alert(msg);
+	}
+	};
+
+	const cerrarModalExitoDesactivacion = () => {
+	setModalExitoDesactivacionAbierto(false);
+	cargarDetalle();
+	};
+
+
+
   // Crear instancia
   const handleCrearInstancia = async () => {
 	if (!fechaInstancia) return;
@@ -389,6 +425,14 @@ export function usePlanDetalle(planId) {
 	confirmarActivacionPlan,
 	modalExitoActivacionAbierto,
 	cerrarModalExitoActivacion,
+
+	// Desactivación
+	modalConfirmacionDesactivacionAbierto,
+	abrirConfirmacionDesactivacion,
+	cerrarConfirmacionDesactivacion,
+	confirmarDesactivacionPlan,
+	modalExitoDesactivacionAbierto,
+	cerrarModalExitoDesactivacion,
 
 	// Crear instancia
 	handleCrearInstancia,
