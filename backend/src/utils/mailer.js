@@ -22,8 +22,8 @@ const sendMail = async (to, subject, html) => {
 
   const transporter = nodemailer.createTransport({
 	host: ipv4,              	
-	port: 587,
-	secure: false,
+	port: 456,
+	secure: true,
 	auth: {
   	user: process.env.MAIL_USER,
   	pass: process.env.MAIL_PASS
