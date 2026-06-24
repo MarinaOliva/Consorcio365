@@ -1,20 +1,28 @@
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+const brevo = require('@getbrevo/brevo');
+
+const apiInstance = new brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(
+  brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
 
 const sendMail = async (to, subject, html) => {
-  const { data, error } = await resend.emails.send({
-    from: 'Consorcio365 <onboarding@resend.dev>', // o tu dominio verificado
-    to,
-    subject,
-    html
-  });
+  const sendSmtpEmail = new brevo.SendSmtpEmail();
+  sendSmtpEmail.sender = {
+	name: 'Consorcio365',
+	email: process.env.MAIL_SENDER, 
+  };
+  sendSmtpEmail.to = [{ email: to }];
+  sendSmtpEmail.subject = subject;
+  sendSmtpEmail.htmlContent = html;
 
-  if (error) {
-    console.error('Error enviando mail:', error);
-    throw error;
+  try {
+	const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
+	return result;
+  } catch (err) {
+	console.error('Error enviando mail:', err.response?.body || err.message);
+	throw err;
   }
-
-  return data;
 };
 
 module.exports = sendMail;
