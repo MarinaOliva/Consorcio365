@@ -7,7 +7,7 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "test": "jest --testPathIgnorePatterns=selenium",
-    "test:selenium": "jest --testPathPatterns=selenium --testTimeout=60000" 
+    "test:selenium": "jest --testPathPatterns=selenium --testTimeout=60000"
   },
   "keywords": [],
   "author": "",
@@ -25,7 +25,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.2",
     "multer": "^2.1.1",
-    "nodemailer": "^8.0.7",
+    "resend": "^6.14.0",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
