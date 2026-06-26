@@ -7,13 +7,17 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "test": "jest --testPathIgnorePatterns=selenium",
-    "test:selenium": "jest --testPathPatterns=selenium --testTimeout=60000" 
+    "test:selenium": "jest --testPathPatterns=selenium --testTimeout=60000"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
+    "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
     "cors": "^2.8.6",
@@ -22,7 +26,6 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.2",
     "multer": "^2.1.1",
-    "nodemailer": "^8.0.7",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {

@@ -37,7 +37,7 @@ Estos usuarios son de prueba y se cargan automáticamente mediante el seed inici
 - MongoDB Atlas + Mongoose
 - JWT para autenticación con RBAC (control de acceso por roles)
 - Multer + Cloudinary para gestión de archivos
-- Nodemailer para envío de mails (recuperación de contraseña)
+- Brevo API (vía Axios) para envío de mails (recuperación de contraseña)
 - Socket.IO para tiempo real
 - Bcrypt para hash de contraseñas
 
@@ -85,7 +85,7 @@ Consorcio365/
 - npm v9 o superior
 - Cuenta de MongoDB Atlas (o MongoDB local)
 - Cuenta de Cloudinary (opcional, para subida de archivos)
-- Cuenta de Gmail con App Password (opcional, para envío de mails)
+- Cuenta de Brevo con un sender verificado (opcional, para envío de mails)
 
 ### 1️⃣ Clonar el repositorio
 
@@ -115,8 +115,8 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 
 # Mail (opcional)
-MAIL_USER=tu_email@gmail.com
-MAIL_PASS=tu_app_password_de_google
+BREVO_API_KEY=tu_api_key_de_brevo
+MAIL_SENDER=tu_email_verificado_en_brevo@gmail.com
 ```
 
 Poblar la base de datos con datos de prueba:
