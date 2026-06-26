@@ -213,15 +213,18 @@ const handleView = (row) => {
   	const teniaRelacion = !!relacionActual;
   	const tieneNuevaUnidad = !!nuevaUnidad;
 
-  	const cambioUnidad =
-    	teniaRelacion && tieneNuevaUnidad && relacionActual.unidadId !== nuevaUnidad;
-  	const cambioSoloRol =
-    	teniaRelacion &&
-    	tieneNuevaUnidad &&
-    	relacionActual.unidadId === nuevaUnidad &&
-    	relacionActual.rolEnUnidad !== nuevoRol;
-  	const quitoUnidad = teniaRelacion && !tieneNuevaUnidad;
-  	const agregoUnidad = !teniaRelacion && tieneNuevaUnidad;
+  	const unidadActualStr = teniaRelacion ? String(relacionActual.unidadId) : null;
+const unidadNuevaStr = tieneNuevaUnidad ? String(nuevaUnidad) : null;
+
+  const cambioUnidad =
+    teniaRelacion && tieneNuevaUnidad && unidadActualStr !== unidadNuevaStr;
+  const cambioSoloRol =
+    teniaRelacion &&
+    tieneNuevaUnidad &&
+    unidadActualStr === unidadNuevaStr &&
+    relacionActual.rolEnUnidad !== nuevoRol;
+  const quitoUnidad = teniaRelacion && !tieneNuevaUnidad;
+  const agregoUnidad = !teniaRelacion && tieneNuevaUnidad;
 
   	console.log("[handleSave] caso detectado:", {
     	cambioUnidad, cambioSoloRol, quitoUnidad, agregoUnidad,
